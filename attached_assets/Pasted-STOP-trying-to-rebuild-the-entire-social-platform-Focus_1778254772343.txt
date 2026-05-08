@@ -1,0 +1,134 @@
+STOP trying to rebuild the entire social platform.
+
+Focus ONLY on implementing a REAL working FOLLOW SYSTEM.
+
+Do NOT touch:
+
+* UI design
+* branding
+* feed
+* comments
+* likes
+* notifications
+* unrelated systems
+
+ONLY fix following functionality.
+
+---
+
+## CURRENT ISSUE
+
+Users can see accounts but:
+
+* follow buttons do nothing
+  OR
+* follow state does not persist
+  OR
+* follower counts do not update
+
+The app currently feels fake because social relationships are not real.
+
+---
+
+## GOAL
+
+Implement a REAL production-ready follow system using Supabase.
+
+---
+
+## REQUIREMENTS
+
+1. CREATE FOLLOW TABLE
+   Create a proper Supabase table:
+
+follows
+
+* id
+* follower_id
+* following_id
+* created_at
+
+Use authenticated user IDs.
+
+Prevent duplicate follow relationships.
+
+---
+
+2. FOLLOW BUTTON FUNCTIONALITY
+   When a user clicks Follow:
+
+* create database relationship
+* update UI instantly
+* persist after refresh/login
+
+When user clicks Following:
+
+* unfollow properly
+* remove relationship from database
+* update UI instantly
+
+---
+
+3. FOLLOW STATE PERSISTENCE
+   The app must correctly detect:
+
+* whether current user already follows another user
+* across all sessions/devices
+
+Follow buttons must NEVER reset incorrectly.
+
+---
+
+4. FOLLOWER COUNTS
+   Profile pages must display REAL:
+
+* follower counts
+* following counts
+
+Counts must update dynamically from database.
+
+---
+
+5. CLICKABLE USER PROFILES
+   Users should be able to:
+
+* click usernames
+* open profiles
+* follow/unfollow from profile
+
+---
+
+6. SEARCH INTEGRATION
+   The Discover/Search page should:
+
+* display REAL registered users
+* allow following directly from results
+
+NO fake placeholder users.
+
+---
+
+7. DEBUGGING
+   Add console logs for:
+
+* authenticated user ID
+* follow relationship creation
+* follow query results
+* follow state checks
+
+This is important because the current app falsely claims features are working.
+
+---
+
+8. IMPORTANT
+
+---
+
+DO NOT:
+
+* redesign anything
+* rebuild pages
+* modify branding
+* touch unrelated systems
+
+ONLY implement a REAL persistent FOLLOW SYSTEM.
