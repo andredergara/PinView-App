@@ -243,8 +243,8 @@ export default function Profile() {
                 </div>
                 {isOwnProfile ? (
                   <button
-                    data-testid="button-logout"
-                    onClick={handleLogout}
+                    data-testid="button-settings"
+                    onClick={() => setLocation("/settings")}
                     className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-colors"
                   >
                     <Settings className="w-5 h-5" />

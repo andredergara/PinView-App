@@ -10,6 +10,7 @@ import Profile from "@/pages/profile";
 import Notifications from "@/pages/notifications";
 import PostPage from "@/pages/post";
 import Login from "@/pages/login";
+import Settings from "@/pages/settings";
 import { AuthProvider } from "@/lib/auth";
 
 const queryClient = new QueryClient({
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/notifications" component={Notifications} />
       <Route path="/post/:postId" component={PostPage} />
       <Route path="/login" component={Login} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );
