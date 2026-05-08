@@ -1,0 +1,290 @@
+Create a brand new mobile-first social golf platform app called “PinView” using the SAME branding, color palette, typography, logo style, and premium golf-tech aesthetic from the previous PinView project.
+
+IMPORTANT:
+This is now a standalone golf social/video platform.
+Do NOT mention:
+
+* QR codes
+* replay cameras
+* future hardware
+* course installations
+* tee box camera systems
+
+This new app should feel like:
+
+* a premium golf social platform
+* built specifically around golf shot videos and replay content
+
+Think:
+
+* Instagram for golf shots
+* TikTok for golf swings and golf moments
+* modern golf-tech social platform
+
+The app should feel:
+
+* premium
+* addictive
+* modern
+* cinematic
+* golfer-focused
+
+---
+
+## CORE BRANDING
+
+Use the EXACT existing PinView branding:
+
+* black/dark backgrounds
+* green accents
+* white typography
+* same logo styling
+* same premium modern golf-tech aesthetic
+
+Preserve:
+
+* visual identity
+* UI feel
+* premium atmosphere
+
+DO NOT redesign the brand.
+
+---
+
+## TECH STACK
+
+Use:
+
+* React
+* Vite
+* Tailwind CSS
+* Supabase
+* Mobile-first responsive design
+* Modern component architecture
+
+---
+
+## PHASE 1 APP STRUCTURE
+
+Build a clean MVP social platform with these main screens only:
+
+1. HOME FEED
+2. UPLOAD
+3. PROFILE
+4. DISCOVER
+5. NOTIFICATIONS
+
+Nothing more for now.
+
+---
+
+1. HOME FEED
+
+---
+
+Create a modern vertical scrolling golf content feed.
+
+Features:
+
+* autoplay golf videos
+* smooth scrolling
+* premium video cards
+* likes
+* comments
+* saves
+* share button
+* course tags
+* club tags
+* shot type tags
+
+Content examples:
+
+* tee shots
+* hole-outs
+* tracers
+* iron shots
+* stingers
+* golf fails
+* hole-in-ones
+
+The feed should feel:
+
+* cinematic
+* smooth
+* modern
+* addictive
+
+---
+
+2. UPLOAD SCREEN
+
+---
+
+Allow users to upload golf videos.
+
+Upload form should include:
+
+* video upload
+* caption
+* golf course
+* hole number
+* club used
+* distance
+* shot shape
+* hashtags/tags
+
+Shot shape options:
+
+* Straight
+* Draw
+* Fade
+* Hook
+* Slice
+
+Include:
+
+* modern drag/drop upload UI
+* premium styling
+* mobile-first experience
+
+---
+
+3. PROFILE SCREEN
+
+---
+
+Create premium golfer profiles.
+
+Include:
+
+* profile picture
+* username
+* handicap
+* home course
+* followers/following
+* total shots posted
+* average distance
+* video grid
+
+The profile should feel:
+
+* clean
+* aspirational
+* athlete-focused
+* premium
+
+---
+
+4. DISCOVER SCREEN
+
+---
+
+Allow users to:
+
+* search golfers
+* search courses
+* discover trending videos
+
+Include:
+
+* search bar
+* golfer cards
+* follow buttons
+* trending creators
+* trending courses
+
+---
+
+5. NOTIFICATIONS SCREEN
+
+---
+
+Add modern notification system UI.
+
+Examples:
+
+* likes
+* follows
+* comments
+* featured shot alerts
+* trending shot notifications
+
+---
+
+## ADDITIONAL FEATURES
+
+Add:
+
+* smooth animations
+* premium hover/tap states
+* mobile bottom navigation
+* modern loading states
+* realistic golf sample content
+* premium empty states
+
+---
+
+## HOMEPAGE / ONBOARDING
+
+Create a clean onboarding experience.
+
+Messaging direction:
+
+* “Every Shot. Captured.”
+* “Share your golf game.”
+* “Built for golfers.”
+
+Keep messaging:
+
+* clean
+* modern
+* premium
+
+NOT cheesy.
+
+---
+
+## IMPORTANT DESIGN DIRECTION
+
+The app should feel closer to:
+
+* WHOOP
+* Trackman
+* modern sports startups
+* premium athlete apps
+
+NOT:
+
+* generic social media
+* childish golf apps
+* outdated sports websites
+
+---
+
+## SUPABASE REQUIREMENTS
+
+Set up:
+
+* authentication
+* persistent user profiles
+* video uploads
+* feed storage
+* comments
+* likes
+* followers
+
+Ensure:
+
+* all data persists across devices
+* profiles sync correctly
+* uploaded videos work cross-device
+
+---
+
+## FINAL IMPORTANT NOTES
+
+* Preserve the existing PinView branding and identity from the previous project
+* Keep the premium golf-tech atmosphere
+* Focus on making the platform feel REAL and INVESTOR-READY
+* Prioritize mobile UX heavily
+* Keep the architecture scalable for future growth
