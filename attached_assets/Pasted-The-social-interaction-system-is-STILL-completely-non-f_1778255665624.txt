@@ -1,0 +1,175 @@
+The social interaction system is STILL completely non-functional.
+
+Current issues:
+
+* pressing Like does nothing
+* pressing Comment Send does nothing
+* Follow buttons do nothing
+* interaction counts do not update
+* users cannot actually interact with posts
+
+The UI exists visually, but the buttons are NOT connected to real backend actions.
+
+STOP giving placeholder implementations.
+
+FULLY DEBUG the actual interaction logic.
+
+---
+
+## CRITICAL REQUIREMENT
+
+When a user interacts with a post:
+
+* the action must immediately write to Supabase
+* the UI must instantly update
+* the interaction must persist after refresh/login
+
+This should behave like a REAL social app.
+
+---
+
+1. FIX LIKE BUTTONS
+
+---
+
+Current issue:
+Clicking the heart icon does nothing.
+
+Requirements:
+
+* clicking Like inserts a row into Supabase likes table
+* clicking again removes the like
+* heart icon should immediately turn RED when liked
+* heart should revert when unliked
+* like count updates instantly
+* likes persist after refresh/login
+
+Behavior should feel similar to:
+
+* Instagram
+* TikTok
+
+Add:
+
+* optimistic UI updates
+* loading/error handling
+
+---
+
+2. FIX COMMENT SYSTEM
+
+---
+
+Current issue:
+Typing a comment and pressing Send does nothing.
+
+Requirements:
+
+* clicking Send must insert comment into Supabase comments table
+* comment should instantly appear below video
+* comments persist after refresh/login
+* users can comment on:
+
+  * their own posts
+  * other users' posts
+* comments should display:
+
+  * username
+  * timestamp
+  * profile picture
+
+If comment insertion fails:
+
+* show visible error message
+* log Supabase error to console
+
+---
+
+3. FIX FOLLOW BUTTONS
+
+---
+
+Current issue:
+Follow buttons visually exist but do nothing.
+
+Requirements:
+
+* clicking Follow inserts follow relationship into database
+* button changes to Following immediately
+* clicking Following unfollows properly
+* follower counts update instantly
+* relationships persist after refresh/login
+
+---
+
+4. VERIFY AUTHENTICATED USER CONTEXT
+
+---
+
+The interaction system may not know who the logged-in user is.
+
+Before every interaction:
+verify:
+
+* authenticated user exists
+* user ID is available
+* auth session is loaded correctly
+
+Log:
+
+* current user ID
+* current post ID
+* Supabase mutation result
+
+---
+
+5. FIX FRONTEND STATE MANAGEMENT
+
+---
+
+The app likely has:
+
+* disconnected state
+* fake placeholder handlers
+* non-persistent local state
+
+Replace ALL fake interaction handlers with REAL async Supabase mutations.
+
+Ensure:
+
+* UI re-renders after successful database writes
+* interactions persist globally
+
+---
+
+6. ADD REAL ERROR LOGGING
+
+---
+
+DO NOT silently fail.
+
+If:
+
+* likes fail
+* comments fail
+* follows fail
+
+log EXACT Supabase/database/frontend errors to console.
+
+---
+
+7. IMPORTANT
+
+---
+
+DO NOT redesign anything.
+DO NOT change branding/UI/layout.
+
+ONLY debug and fully connect:
+
+* likes
+* comments
+* follows
+* interaction persistence
+
+This should now behave like a REAL production social platform.

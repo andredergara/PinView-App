@@ -9,6 +9,9 @@ import { pool } from "@workspace/db";
 
 const app: Express = express();
 
+// Trust the Replit reverse-proxy so req.secure / req.ip are correct
+app.set("trust proxy", 1);
+
 const PgStore = connectPgSimple(session);
 
 app.use(
@@ -68,7 +71,11 @@ app.use(
       secure: isProduction,
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-      sameSite: isProduction ? "none" : "lax",
+      // SameSite=Lax works for same-domain deployments (Replit) and is
+      // accepted by all browsers including Safari/iOS.
+      // SameSite=None is only needed for cross-site requests and is
+      // blocked by many browsers/extensions without special opt-in.
+      sameSite: "lax",
     },
   }),
 );
