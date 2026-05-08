@@ -5,3 +5,4 @@ export * from "./saves";
 export * from "./comments";
 export * from "./follows";
 export * from "./notifications";
+export * from "./sessions";
