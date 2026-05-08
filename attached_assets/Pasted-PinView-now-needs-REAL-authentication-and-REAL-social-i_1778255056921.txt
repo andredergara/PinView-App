@@ -1,0 +1,163 @@
+PinView now needs REAL authentication and REAL social interactions.
+
+The app currently looks polished visually, but users still cannot:
+
+* properly interact with posts
+* like videos
+* comment
+* authenticate using Google or Apple
+* behave like a real social platform
+
+This must now become a REAL production-ready backend-connected app.
+
+IMPORTANT:
+Do NOT redesign the app.
+Do NOT touch branding/colors/layout.
+Focus ONLY on functionality and backend architecture.
+
+---
+
+## PART 1 — REAL AUTHENTICATION
+
+Add REAL authentication providers using Supabase Auth.
+
+Implement:
+
+* Google Sign In
+* Apple Sign In
+* Email/password login
+
+Requirements:
+
+* persistent login sessions
+* cross-device session sync
+* proper profile creation on first login
+* OAuth flows working on:
+
+  * mobile
+  * desktop
+  * Safari
+  * Chrome
+
+Each user must have:
+
+* unique profile
+* unique username
+* persistent user ID
+
+---
+
+## PART 2 — REAL LIKE SYSTEM
+
+Build a REAL persistent like system.
+
+Requirements:
+
+* users can like posts
+* users can unlike posts
+* likes save to database
+* like counts update instantly
+* likes persist after refresh/login
+* prevent duplicate likes
+
+Create proper Supabase likes table:
+
+* id
+* user_id
+* post_id
+* created_at
+
+---
+
+## PART 3 — REAL COMMENT SYSTEM
+
+Implement REAL comments.
+
+Requirements:
+
+* users can add comments
+* comments save to database
+* comments display instantly
+* delete own comment
+* timestamps
+* usernames/profile pictures display correctly
+
+Create proper comments table:
+
+* id
+* post_id
+* user_id
+* content
+* created_at
+
+---
+
+## PART 4 — REAL USER INTERACTION
+
+Posts should now behave like real social posts.
+
+Users should be able to:
+
+* like
+* comment
+* follow creator
+* open creator profile
+* save/bookmark posts
+
+All interactions must persist in Supabase.
+
+---
+
+## PART 5 — REMOVE FAKE INTERACTIONS
+
+Remove ALL:
+
+* fake like counts
+* fake comment counts
+* placeholder interactions
+* mock social data
+
+If no real interactions exist:
+display:
+
+* 0 likes
+* no comments yet
+
+The app should feel REAL, not simulated.
+
+---
+
+## PART 6 — DATABASE STRUCTURE
+
+Ensure proper relational architecture between:
+
+* users
+* profiles
+* posts
+* likes
+* comments
+* follows
+
+Use:
+
+* foreign keys
+* relational queries
+* scalable production structure
+
+---
+
+## PART 7 — IMPORTANT
+
+Do NOT:
+
+* redesign UI
+* change branding
+* modify aesthetic
+* rebuild pages unnecessarily
+
+Keep the premium PinView golf-tech identity exactly as it currently is.
+
+ONLY convert the platform from:
+“visual demo”
+into:
+“real functioning social golf platform.”
