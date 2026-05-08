@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, postsTable, followsTable, likesTable } from "@workspace/db";
+import { db, usersTable, postsTable, followsTable, likesTable, savesTable, notificationsTable, blocksTable } from "@workspace/db";
 import { eq, count, sql, and } from "drizzle-orm";
 import { UpdateUserBody } from "@workspace/api-zod";
+import { buildUserCard, enrichPost } from "./postHelpers";
 
 const router: IRouter = Router();
 
@@ -25,12 +26,19 @@ async function buildUserProfile(userId: string, currentUserId?: string) {
     .where(eq(postsTable.authorId, userId));
 
   let isFollowing = false;
+  let isBlocked = false;
   if (currentUserId && currentUserId !== userId) {
     const [follow] = await db
       .select()
       .from(followsTable)
       .where(and(eq(followsTable.followerId, currentUserId), eq(followsTable.followingId, userId)));
     isFollowing = !!follow;
+
+    const [block] = await db
+      .select()
+      .from(blocksTable)
+      .where(and(eq(blocksTable.blockerId, currentUserId), eq(blocksTable.blockedId, userId)));
+    isBlocked = !!block;
   }
 
   return {
@@ -45,22 +53,8 @@ async function buildUserProfile(userId: string, currentUserId?: string) {
     followingCount: followingCount ?? 0,
     postsCount: postsCount ?? 0,
     isFollowing,
+    isBlocked,
     createdAt: user.createdAt.toISOString(),
-  };
-}
-
-async function buildUserCard(userId: string, currentUserId?: string) {
-  const profile = await buildUserProfile(userId, currentUserId);
-  if (!profile) return null;
-  return {
-    id: profile.id,
-    username: profile.username,
-    displayName: profile.displayName,
-    avatarUrl: profile.avatarUrl,
-    handicap: profile.handicap,
-    homeCourse: profile.homeCourse,
-    followersCount: profile.followersCount,
-    isFollowing: profile.isFollowing,
   };
 }
 
@@ -162,9 +156,22 @@ router.post("/users/:userId/follow", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Cannot follow yourself" });
     return;
   }
-  try {
-    await db.insert(followsTable).values({ followerId: currentUserId, followingId: userId }).onConflictDoNothing();
-  } catch {}
+  const result = await db
+    .insert(followsTable)
+    .values({ followerId: currentUserId, followingId: userId })
+    .onConflictDoNothing()
+    .returning();
+
+  if (result.length > 0) {
+    const [actor] = await db.select().from(usersTable).where(eq(usersTable.id, currentUserId));
+    await db.insert(notificationsTable).values({
+      userId,
+      actorId: currentUserId,
+      type: "follow",
+      message: `${actor?.displayName ?? "Someone"} started following you`,
+    }).onConflictDoNothing();
+  }
+
   res.json({ ok: true });
 });
 
@@ -197,6 +204,36 @@ router.get("/users/:userId/following", async (req, res): Promise<void> => {
   res.json(cards.filter(Boolean));
 });
 
+router.get("/users/:userId/saved", async (req, res): Promise<void> => {
+  const { userId } = req.params as { userId: string };
+  const currentUserId = req.session?.userId;
+  if (!currentUserId || currentUserId !== userId) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  const limit = parseInt(String(req.query.limit ?? "12"), 10);
+
+  const saves = await db
+    .select({ postId: savesTable.postId })
+    .from(savesTable)
+    .where(eq(savesTable.userId, userId))
+    .orderBy(sql`${savesTable.createdAt} DESC`)
+    .limit(limit + 1);
+
+  const hasMore = saves.length > limit;
+  const items = saves.slice(0, limit);
+
+  const posts = await Promise.all(
+    items.map(async (s) => {
+      const [post] = await db.select().from(postsTable).where(eq(postsTable.id, s.postId));
+      if (!post) return null;
+      return enrichPost(post, currentUserId);
+    })
+  );
+
+  res.json({ posts: posts.filter(Boolean), nextCursor: hasMore ? items[items.length - 1]?.postId : null, hasMore });
+});
+
 router.get("/users/:userId/posts", async (req, res): Promise<void> => {
   const { userId } = req.params as { userId: string };
   const currentUserId = req.session?.userId;
@@ -216,43 +253,39 @@ router.get("/users/:userId/posts", async (req, res): Promise<void> => {
   res.json({ posts: enriched, nextCursor: hasMore ? items[items.length - 1]?.id : null, hasMore });
 });
 
-async function enrichPost(post: { id: string; authorId: string; caption: string | null; videoUrl: string | null; thumbnailUrl: string | null; course: string | null; holeNumber: number | null; club: string | null; distance: number | null; shotShape: string | null; shotType: string | null; tags: string[]; createdAt: Date }, currentUserId?: string) {
-  const [{ likesCount }] = await db.select({ likesCount: count() }).from(sql`likes`).where(sql`post_id = ${post.id}`);
-  const [{ commentsCount }] = await db.select({ commentsCount: count() }).from(sql`comments`).where(sql`post_id = ${post.id}`);
-  const [{ savesCount }] = await db.select({ savesCount: count() }).from(sql`saves`).where(sql`post_id = ${post.id}`);
-
-  let isLiked = false;
-  let isSaved = false;
-  if (currentUserId) {
-    const [like] = await db.select().from(sql`likes`).where(sql`user_id = ${currentUserId} AND post_id = ${post.id}`);
-    isLiked = !!like;
-    const [save] = await db.select().from(sql`saves`).where(sql`user_id = ${currentUserId} AND post_id = ${post.id}`);
-    isSaved = !!save;
+router.post("/users/:userId/block", async (req, res): Promise<void> => {
+  const { userId } = req.params as { userId: string };
+  const currentUserId = req.session?.userId;
+  if (!currentUserId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
+  if (currentUserId === userId) {
+    res.status(400).json({ error: "Cannot block yourself" });
+    return;
+  }
+  await db.insert(blocksTable).values({ blockerId: currentUserId, blockedId: userId }).onConflictDoNothing();
+  await db.delete(followsTable).where(
+    and(eq(followsTable.followerId, currentUserId), eq(followsTable.followingId, userId))
+  );
+  await db.delete(followsTable).where(
+    and(eq(followsTable.followerId, userId), eq(followsTable.followingId, currentUserId))
+  );
+  res.json({ ok: true });
+});
 
-  const author = await buildUserCard(post.authorId, currentUserId);
+router.delete("/users/:userId/block", async (req, res): Promise<void> => {
+  const { userId } = req.params as { userId: string };
+  const currentUserId = req.session?.userId;
+  if (!currentUserId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  await db.delete(blocksTable).where(
+    and(eq(blocksTable.blockerId, currentUserId), eq(blocksTable.blockedId, userId))
+  );
+  res.json({ ok: true });
+});
 
-  return {
-    id: post.id,
-    author,
-    caption: post.caption ?? null,
-    videoUrl: post.videoUrl ?? null,
-    thumbnailUrl: post.thumbnailUrl ?? null,
-    course: post.course ?? null,
-    holeNumber: post.holeNumber ?? null,
-    club: post.club ?? null,
-    distance: post.distance ?? null,
-    shotShape: post.shotShape ?? null,
-    shotType: post.shotType ?? null,
-    tags: post.tags ?? [],
-    likesCount: likesCount ?? 0,
-    commentsCount: commentsCount ?? 0,
-    savesCount: savesCount ?? 0,
-    isLiked,
-    isSaved,
-    createdAt: post.createdAt.toISOString(),
-  };
-}
-
-export { enrichPost, buildUserCard };
+export { buildUserCard };
 export default router;

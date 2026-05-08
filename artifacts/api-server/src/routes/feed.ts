@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, postsTable, followsTable } from "@workspace/db";
 import { eq, sql, inArray } from "drizzle-orm";
-import { enrichPost } from "./users";
+import { enrichPost } from "./postHelpers";
 
 const router: IRouter = Router();
 

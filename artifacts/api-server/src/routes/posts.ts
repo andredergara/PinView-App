@@ -2,7 +2,8 @@ import { Router, type IRouter } from "express";
 import { db, postsTable, likesTable, savesTable, commentsTable, notificationsTable, usersTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { CreatePostBody, CreateCommentBody } from "@workspace/api-zod";
-import { enrichPost, buildUserCard } from "./users";
+import { enrichPost } from "./postHelpers";
+import { buildUserCard } from "./users";
 
 const router: IRouter = Router();
 
@@ -170,6 +171,29 @@ router.post("/posts/:postId/comments", async (req, res): Promise<void> => {
     text: comment.text,
     createdAt: comment.createdAt.toISOString(),
   });
+});
+
+router.delete("/posts/:postId/comments/:commentId", async (req, res): Promise<void> => {
+  const { postId, commentId } = req.params as { postId: string; commentId: string };
+  const currentUserId = req.session?.userId;
+  if (!currentUserId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const [comment] = await db
+    .select()
+    .from(commentsTable)
+    .where(and(eq(commentsTable.id, commentId), eq(commentsTable.postId, postId)));
+  if (!comment) {
+    res.status(404).json({ error: "Comment not found" });
+    return;
+  }
+  if (comment.authorId !== currentUserId) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  await db.delete(commentsTable).where(eq(commentsTable.id, commentId));
+  res.json({ ok: true });
 });
 
 export default router;

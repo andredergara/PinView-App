@@ -1,22 +1,92 @@
 import { useParams, useLocation } from "wouter";
+import { useState } from "react";
 import { Layout } from "@/components/layout";
 import { PinViewLogo } from "@/components/logo";
-import { useGetUser, useGetUserPosts, useGetUserStats, useFollowUser, useUnfollowUser, getGetUserQueryKey, getGetUserPostsQueryKey, getGetUserStatsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetUser, useGetUserPosts, useGetUserStats, useGetUserSaved, useGetUserFollowers, useGetUserFollowing,
+  useFollowUser, useUnfollowUser, useBlockUser, useUnblockUser,
+  getGetUserQueryKey, getGetUserPostsQueryKey, getGetUserStatsQueryKey, getGetUserSavedQueryKey,
+  getGetUserFollowersQueryKey, getGetUserFollowingQueryKey,
+} from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Settings, MapPin, Target } from "lucide-react";
+import { Settings, MapPin, Target, Grid3X3, Bookmark, UserX, UserCheck, ShieldX } from "lucide-react";
 import { useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
+import { UserCard } from "@workspace/api-client-react";
 
-function StatBadge({ label, value }: { label: string; value: string | number }) {
+type ListModal = { type: "followers" | "following"; userId: string } | null;
+
+function UserListItem({ user, onClose }: { user: UserCard; onClose: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-0.5">
+    <Link href={`/profile/${user.id}`} onClick={onClose}>
+      <div className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors rounded-xl">
+        <Avatar className="w-10 h-10 border border-primary/20 shrink-0">
+          <AvatarImage src={user.avatarUrl} />
+          <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
+            {user.username[0].toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-semibold text-sm truncate">{user.displayName}</p>
+          <p className="text-white/40 text-xs">@{user.username}</p>
+        </div>
+        {user.handicap != null && (
+          <span className="text-primary text-xs font-mono font-bold">HCP {user.handicap}</span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function FollowersDialog({ modal, onClose }: { modal: ListModal; onClose: () => void }) {
+  const isFollowers = modal?.type === "followers";
+  const { data: followers } = useGetUserFollowers(modal?.userId ?? "", {
+    query: { enabled: !!modal && modal.type === "followers", queryKey: getGetUserFollowersQueryKey(modal?.userId ?? "") },
+  });
+  const { data: following } = useGetUserFollowing(modal?.userId ?? "", {
+    query: { enabled: !!modal && modal.type === "following", queryKey: getGetUserFollowingQueryKey(modal?.userId ?? "") },
+  });
+  const list = isFollowers ? (followers ?? []) : (following ?? []);
+  return (
+    <Dialog open={!!modal} onOpenChange={() => onClose()}>
+      <DialogContent className="bg-[#0d0d0d] border border-white/10 text-white max-w-sm w-full p-0 max-h-[70vh] flex flex-col">
+        <DialogHeader className="px-4 pt-4 pb-2 border-b border-white/10 shrink-0">
+          <DialogTitle className="text-white font-black uppercase tracking-widest text-sm">
+            {isFollowers ? "Followers" : "Following"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="overflow-y-auto flex-1 py-2">
+          {list.length === 0 ? (
+            <p className="text-white/30 text-sm text-center py-8">
+              {isFollowers ? "No followers yet" : "Not following anyone yet"}
+            </p>
+          ) : (
+            list.map(u => <UserListItem key={u.id} user={u} onClose={onClose} />)
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function StatBadge({ label, value, onClick }: { label: string; value: string | number; onClick?: () => void }) {
+  const isClickable = !!onClick;
+  return (
+    <button
+      className={`flex flex-col items-center gap-0.5 ${isClickable ? "cursor-pointer hover:opacity-80 transition-opacity active:scale-95" : "cursor-default"}`}
+      onClick={onClick}
+      disabled={!isClickable}
+    >
       <span className="text-white text-lg font-black">{value}</span>
-      <span className="text-white/40 text-xs font-medium">{label}</span>
-    </div>
+      <span className={`text-xs font-medium ${isClickable ? "text-primary/70 underline underline-offset-2 decoration-dotted" : "text-white/40"}`}>
+        {label}
+      </span>
+    </button>
   );
 }
 
@@ -25,6 +95,8 @@ export default function Profile() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState<"shots" | "saved">("shots");
+  const [listModal, setListModal] = useState<ListModal>(null);
 
   const userId = params.userId ?? currentUser?.id ?? "";
   const isOwnProfile = currentUser?.id === userId;
@@ -33,7 +105,13 @@ export default function Profile() {
     query: { enabled: !!userId, queryKey: getGetUserQueryKey(userId) },
   });
   const { data: posts, isLoading: postsLoading } = useGetUserPosts(userId, { limit: 12 }, {
-    query: { enabled: !!userId, queryKey: getGetUserPostsQueryKey(userId, { limit: 12 }) },
+    query: { enabled: !!userId && tab === "shots", queryKey: getGetUserPostsQueryKey(userId, { limit: 12 }) },
+  });
+  const { data: savedPosts, isLoading: savedLoading } = useGetUserSaved(userId, { limit: 24 }, {
+    query: {
+      enabled: isOwnProfile && tab === "saved" && !!userId,
+      queryKey: getGetUserSavedQueryKey(userId, { limit: 24 }),
+    },
   });
   const { data: stats } = useGetUserStats(userId, {
     query: { enabled: !!userId, queryKey: getGetUserStatsQueryKey(userId) },
@@ -41,6 +119,8 @@ export default function Profile() {
 
   const follow = useFollowUser();
   const unfollow = useUnfollowUser();
+  const block = useBlockUser();
+  const unblock = useUnblockUser();
   const logout = useLogout();
 
   const handleFollow = () => {
@@ -51,6 +131,19 @@ export default function Profile() {
       });
     } else {
       follow.mutate({ userId }, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetUserQueryKey(userId) }),
+      });
+    }
+  };
+
+  const handleBlock = () => {
+    if (!isAuthenticated) return;
+    if ((user as any)?.isBlocked) {
+      unblock.mutate({ userId }, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetUserQueryKey(userId) }),
+      });
+    } else {
+      block.mutate({ userId }, {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetUserQueryKey(userId) }),
       });
     }
@@ -120,13 +213,20 @@ export default function Profile() {
     );
   }
 
+  const isBlocked = !!(user as any).isBlocked;
+  const displayPosts = tab === "shots" ? posts?.posts : savedPosts?.posts;
+  const displayLoading = tab === "shots" ? postsLoading : savedLoading;
+
   return (
     <Layout>
+      <FollowersDialog modal={listModal} onClose={() => setListModal(null)} />
+
       <div className="flex flex-col min-h-full pb-20">
         {/* Header */}
         <div className="sticky top-0 z-20 backdrop-blur-xl border-b px-4 py-3" style={{ background: "rgba(13,13,13,0.95)", borderColor: "rgba(255,255,255,0.06)" }}>
           <h1 className="text-base font-black text-white uppercase tracking-widest text-center">Profile</h1>
         </div>
+
         <div className="relative px-4 pt-5 pb-4">
           <div className="flex items-start gap-4">
             <Avatar className="w-20 h-20 border-2 border-primary/40 shrink-0">
@@ -150,18 +250,35 @@ export default function Profile() {
                     <Settings className="w-5 h-5" />
                   </button>
                 ) : (
-                  <button
-                    data-testid="button-follow-profile"
-                    onClick={handleFollow}
-                    disabled={follow.isPending || unfollow.isPending}
-                    className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${
-                      user.isFollowing
-                        ? "border-white/20 text-white/60 hover:border-red-400/50 hover:text-red-400"
-                        : "border-primary bg-primary text-black hover:bg-primary/90"
-                    }`}
-                  >
-                    {user.isFollowing ? "Following" : "Follow"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      data-testid="button-follow-profile"
+                      onClick={handleFollow}
+                      disabled={follow.isPending || unfollow.isPending}
+                      className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${
+                        user.isFollowing
+                          ? "border-white/20 text-white/60 hover:border-red-400/50 hover:text-red-400"
+                          : "border-primary bg-primary text-black hover:bg-primary/90"
+                      }`}
+                    >
+                      {user.isFollowing ? "Following" : "Follow"}
+                    </button>
+                    {isAuthenticated && (
+                      <button
+                        data-testid="button-block-profile"
+                        onClick={handleBlock}
+                        disabled={block.isPending || unblock.isPending}
+                        title={isBlocked ? "Unblock user" : "Block user"}
+                        className={`p-2 rounded-full border transition-all ${
+                          isBlocked
+                            ? "border-red-500/50 bg-red-500/10 text-red-400"
+                            : "border-white/10 bg-white/5 text-white/30 hover:text-red-400 hover:border-red-400/30"
+                        }`}
+                      >
+                        {isBlocked ? <ShieldX className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -184,13 +301,21 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Stats Row */}
+          {/* Stats Row — followers/following are clickable */}
           <div className="mt-5 flex items-center justify-around py-4 border border-white/10 rounded-2xl bg-white/3">
             <StatBadge label="Shots" value={user.postsCount} />
             <div className="w-px h-8 bg-white/10" />
-            <StatBadge label="Followers" value={user.followersCount} />
+            <StatBadge
+              label="Followers"
+              value={user.followersCount}
+              onClick={() => setListModal({ type: "followers", userId })}
+            />
             <div className="w-px h-8 bg-white/10" />
-            <StatBadge label="Following" value={user.followingCount} />
+            <StatBadge
+              label="Following"
+              value={user.followingCount}
+              onClick={() => setListModal({ type: "following", userId })}
+            />
           </div>
 
           {/* Golf Stats */}
@@ -218,28 +343,66 @@ export default function Profile() {
           )}
         </div>
 
+        {/* Tab bar — only show saved tab on own profile */}
+        {isOwnProfile && (
+          <div className="flex border-b border-white/10 mb-0">
+            <button
+              onClick={() => setTab("shots")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+                tab === "shots"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-white/30 hover:text-white/60"
+              }`}
+            >
+              <Grid3X3 className="w-3.5 h-3.5" />
+              Shots
+            </button>
+            <button
+              onClick={() => setTab("saved")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+                tab === "saved"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-white/30 hover:text-white/60"
+              }`}
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+              Saved
+            </button>
+          </div>
+        )}
+
         {/* Posts Grid */}
-        <div className="px-1">
-          {postsLoading ? (
-            <div className="grid grid-cols-3 gap-1">
+        <div className="px-0.5 pt-0.5">
+          {displayLoading ? (
+            <div className="grid grid-cols-3 gap-0.5">
               {Array.from({ length: 9 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-square rounded-none" />
+                <Skeleton key={i} className="aspect-square" />
               ))}
             </div>
-          ) : (posts?.posts?.length ?? 0) === 0 ? (
+          ) : (displayPosts?.length ?? 0) === 0 ? (
             <div className="text-center py-12 px-4 text-white/30">
-              <p className="text-lg font-semibold">{isOwnProfile ? "Post your first shot" : "No shots yet"}</p>
-              {isOwnProfile && (
-                <Link href="/upload">
-                  <Button className="mt-4 bg-primary text-black font-bold" data-testid="button-upload-first">
-                    Upload Shot
-                  </Button>
-                </Link>
+              {tab === "saved" ? (
+                <>
+                  <Bookmark className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                  <p className="text-lg font-semibold">No saved shots yet</p>
+                  <p className="text-sm mt-1">Shots you bookmark will appear here</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-semibold">{isOwnProfile ? "Post your first shot" : "No shots yet"}</p>
+                  {isOwnProfile && (
+                    <Link href="/upload">
+                      <Button className="mt-4 bg-primary text-black font-bold" data-testid="button-upload-first">
+                        Upload Shot
+                      </Button>
+                    </Link>
+                  )}
+                </>
               )}
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-0.5">
-              {posts!.posts.map(post => (
+              {displayPosts!.map(post => (
                 <Link key={post.id} href={`/post/${post.id}`}>
                   <div data-testid={`card-post-grid-${post.id}`} className="aspect-square bg-white/5 relative overflow-hidden">
                     <img
@@ -251,6 +414,11 @@ export default function Profile() {
                     {post.club && (
                       <div className="absolute top-1 left-1">
                         <span className="px-1.5 py-0.5 rounded bg-primary/80 text-black text-xs font-bold">{post.club}</span>
+                      </div>
+                    )}
+                    {tab === "saved" && (
+                      <div className="absolute top-1 right-1">
+                        <Bookmark className="w-3 h-3 text-primary fill-current drop-shadow" />
                       </div>
                     )}
                   </div>

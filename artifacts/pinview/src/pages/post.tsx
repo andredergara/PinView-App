@@ -1,10 +1,10 @@
 import { useParams, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
-import { useGetPost, useGetPostComments, useCreateComment, useLikePost, useUnlikePost, useSavePost, useUnsavePost, getGetPostQueryKey, getGetPostCommentsQueryKey } from "@workspace/api-client-react";
+import { useGetPost, useGetPostComments, useCreateComment, useLikePost, useUnlikePost, useSavePost, useUnsavePost, useDeleteComment, getGetPostQueryKey, getGetPostCommentsQueryKey } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
-import { Heart, MessageCircle, Bookmark, ChevronLeft, Send } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, ChevronLeft, Send, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ function timeAgo(dateStr: string) {
 export default function PostPage() {
   const params = useParams<{ postId: string }>();
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [commentText, setCommentText] = useState("");
 
@@ -39,6 +39,7 @@ export default function PostPage() {
   const savePost = useSavePost();
   const unsavePost = useUnsavePost();
   const createComment = useCreateComment();
+  const deleteComment = useDeleteComment();
 
   const handleLike = () => {
     if (!isAuthenticated) { setLocation("/login"); return; }
@@ -74,6 +75,18 @@ export default function PostPage() {
       {
         onSuccess: () => {
           setCommentText("");
+          queryClient.invalidateQueries({ queryKey: getGetPostCommentsQueryKey(params.postId) });
+          queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) });
+        },
+      }
+    );
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    deleteComment.mutate(
+      { postId: params.postId, commentId },
+      {
+        onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetPostCommentsQueryKey(params.postId) });
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) });
         },
@@ -207,25 +220,38 @@ export default function PostPage() {
             <span className="text-white/40 text-sm font-medium">{post.commentsCount} comments</span>
           </div>
           <div className="space-y-4">
-            {(comments || []).map(comment => (
-              <div key={comment.id} data-testid={`comment-${comment.id}`} className="flex gap-3">
-                <Link href={`/profile/${comment.author?.id}`}>
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarImage src={comment.author?.avatarUrl} />
-                    <AvatarFallback className="bg-white/5 text-white/60 text-xs">
-                      {comment.author?.username?.[0]?.toUpperCase() ?? "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-                <div className="flex-1">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-white text-sm font-semibold">@{comment.author?.username}</span>
-                    <span className="text-white/20 text-xs">{timeAgo(comment.createdAt)}</span>
+            {(comments || []).map(comment => {
+              const isMyComment = currentUser?.id === comment.author?.id;
+              return (
+                <div key={comment.id} data-testid={`comment-${comment.id}`} className="flex gap-3 group">
+                  <Link href={`/profile/${comment.author?.id}`}>
+                    <Avatar className="w-8 h-8 shrink-0">
+                      <AvatarImage src={comment.author?.avatarUrl} />
+                      <AvatarFallback className="bg-white/5 text-white/60 text-xs">
+                        {comment.author?.username?.[0]?.toUpperCase() ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-white text-sm font-semibold">@{comment.author?.username}</span>
+                      <span className="text-white/20 text-xs">{timeAgo(comment.createdAt)}</span>
+                    </div>
+                    <p className="text-white/70 text-sm mt-0.5">{comment.text}</p>
                   </div>
-                  <p className="text-white/70 text-sm mt-0.5">{comment.text}</p>
+                  {isMyComment && (
+                    <button
+                      data-testid={`button-delete-comment-${comment.id}`}
+                      onClick={() => handleDeleteComment(comment.id)}
+                      disabled={deleteComment.isPending}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all self-start mt-0.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {(comments?.length ?? 0) === 0 && (
               <p className="text-white/20 text-sm text-center py-4">No comments yet. Be first.</p>
             )}

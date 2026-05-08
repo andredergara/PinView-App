@@ -1,0 +1,254 @@
+PinView is no longer a prototype concept app.
+
+We are now transitioning this into a REAL social golf platform with REAL persistent social functionality.
+
+The current UI/branding/design direction is strong.
+DO NOT redesign the app.
+DO NOT rebuild the aesthetic.
+
+Instead, begin converting all placeholder/demo social features into REAL production-ready systems backed by Supabase.
+
+---
+
+## HIGH PRIORITY GOAL
+
+PinView should now function like a real social platform where users can:
+
+* follow other golfers
+* unfollow users
+* block users
+* search users
+* like posts
+* comment on posts
+* save/bookmark posts
+* view profiles
+* view follower/following lists
+
+The platform should begin behaving like a real social network.
+
+---
+
+1. REAL FOLLOW SYSTEM
+
+---
+
+Current issue:
+Users cannot actually follow friends/accounts reliably.
+
+Build a REAL follow system using Supabase tables.
+
+Requirements:
+
+* Follow button must persist
+* Following relationships must save in database
+* Follower/following counts must update live
+* Users should remain followed after refresh/login
+* Users can unfollow properly
+* Prevent duplicate follows
+
+Create proper:
+
+* followers table
+* following relationships
+* queries
+* realtime UI updates
+
+---
+
+2. USER SEARCH SYSTEM
+
+---
+
+The search/discover system must become REAL.
+
+Requirements:
+
+* Search ALL registered users
+* Search by:
+
+  * username
+  * display name
+  * partial matches
+* Results should appear instantly
+* Clicking a user opens their profile
+* Search must work even if users have:
+
+  * zero posts
+  * private profiles
+  * no followers yet
+
+NO fake/demo discover results anymore.
+
+---
+
+3. REAL LIKE SYSTEM
+
+---
+
+Build a persistent production-ready like system.
+
+Requirements:
+
+* Likes save in database
+* Like count updates instantly
+* Users can unlike posts
+* Prevent duplicate likes
+* Likes persist across devices/sessions
+
+---
+
+4. REAL COMMENT SYSTEM
+
+---
+
+Build a production-ready comment system.
+
+Requirements:
+
+* Users can post comments
+* Comments persist in database
+* Real timestamps
+* Real usernames/profile pictures
+* Delete own comment functionality
+* Smooth mobile UX
+
+---
+
+5. SAVE / BOOKMARK SYSTEM
+
+---
+
+Allow users to:
+
+* save/bookmark golf videos
+* access saved posts later
+* persist saved posts across devices
+
+---
+
+6. BLOCK USER SYSTEM
+
+---
+
+Add user blocking functionality.
+
+Requirements:
+
+* Blocked users cannot:
+
+  * follow
+  * interact
+  * message (future)
+* Blocked accounts hidden from feed/search where appropriate
+
+---
+
+7. REAL PROFILE RELATIONSHIPS
+
+---
+
+Profiles should now behave like real social profiles.
+
+Add:
+
+* follower list
+* following list
+* clickable profile navigation
+* mutual follow indicators
+* follow state persistence
+
+---
+
+8. REAL FEED DATA
+
+---
+
+The home feed should now populate from REAL uploaded content.
+
+Requirements:
+
+* Pull posts from database
+* Sort by:
+
+  * recent
+  * engagement
+  * following
+* Remove fake placeholder feed logic
+
+---
+
+9. NOTIFICATIONS SYSTEM
+
+---
+
+Create real notification events for:
+
+* follows
+* likes
+* comments
+
+Persist notifications in database.
+
+---
+
+10. SUPABASE DATABASE ARCHITECTURE
+
+---
+
+Create proper scalable database tables for:
+
+* users/profiles
+* follows
+* posts
+* likes
+* comments
+* saved_posts
+* blocked_users
+* notifications
+
+Use:
+
+* proper foreign keys
+* relational queries
+* scalable architecture
+
+---
+
+11. MOBILE-FIRST UX
+
+---
+
+Everything must feel:
+
+* smooth
+* responsive
+* premium
+* social-media quality
+
+Prioritize:
+
+* iPhone usability
+* fast interactions
+* clean transitions
+* instant feedback
+
+---
+
+12. IMPORTANT
+
+---
+
+DO NOT redesign the app.
+DO NOT change branding/colors/logo.
+DO NOT make it generic.
+
+Keep:
+
+* existing PinView branding
+* premium golf-tech atmosphere
+* cinematic golf feel
+
+Only evolve the platform from:
+“concept demo”
+into:
+“real functioning golf social platform.”

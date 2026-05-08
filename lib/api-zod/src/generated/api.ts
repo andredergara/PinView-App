@@ -27,6 +27,7 @@ export const GetMeResponse = zod.object({
   homeCourse: zod.string().nullish(),
   followersCount: zod.number(),
   followingCount: zod.number(),
+  isBlocked: zod.boolean().optional(),
   postsCount: zod.number(),
   isFollowing: zod.boolean(),
   createdAt: zod.string(),
@@ -63,6 +64,7 @@ export const LoginResponse = zod.object({
     homeCourse: zod.string().nullish(),
     followersCount: zod.number(),
     followingCount: zod.number(),
+    isBlocked: zod.boolean().optional(),
     postsCount: zod.number(),
     isFollowing: zod.boolean(),
     createdAt: zod.string(),
@@ -86,6 +88,7 @@ export const GetUserResponse = zod.object({
   homeCourse: zod.string().nullish(),
   followersCount: zod.number(),
   followingCount: zod.number(),
+  isBlocked: zod.boolean().optional(),
   postsCount: zod.number(),
   isFollowing: zod.boolean(),
   createdAt: zod.string(),
@@ -116,6 +119,7 @@ export const UpdateUserResponse = zod.object({
   homeCourse: zod.string().nullish(),
   followersCount: zod.number(),
   followingCount: zod.number(),
+  isBlocked: zod.boolean().optional(),
   postsCount: zod.number(),
   isFollowing: zod.boolean(),
   createdAt: zod.string(),
@@ -242,6 +246,71 @@ export const GetUserFollowingResponseItem = zod.object({
 export const GetUserFollowingResponse = zod.array(GetUserFollowingResponseItem);
 
 /**
+ * @summary Get posts saved by a user
+ */
+export const GetUserSavedParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const getUserSavedQueryLimitDefault = 12;
+
+export const GetUserSavedQueryParams = zod.object({
+  limit: zod.coerce.number().default(getUserSavedQueryLimitDefault),
+});
+
+export const GetUserSavedResponse = zod.object({
+  posts: zod.array(
+    zod.object({
+      id: zod.string(),
+      author: zod.object({
+        id: zod.string(),
+        username: zod.string(),
+        displayName: zod.string(),
+        avatarUrl: zod.string().optional(),
+        handicap: zod.number().nullish(),
+        homeCourse: zod.string().nullish(),
+        followersCount: zod.number(),
+        isFollowing: zod.boolean(),
+      }),
+      caption: zod.string().nullish(),
+      videoUrl: zod.string().nullish(),
+      thumbnailUrl: zod.string().nullish(),
+      course: zod.string().nullish(),
+      holeNumber: zod.number().nullish(),
+      club: zod.string().nullish(),
+      distance: zod.number().nullish(),
+      shotShape: zod
+        .enum(["Straight", "Draw", "Fade", "Hook", "Slice"])
+        .nullish(),
+      shotType: zod.string().nullish(),
+      tags: zod.array(zod.string()),
+      likesCount: zod.number(),
+      commentsCount: zod.number(),
+      savesCount: zod.number(),
+      isLiked: zod.boolean(),
+      isSaved: zod.boolean(),
+      createdAt: zod.string(),
+    }),
+  ),
+  nextCursor: zod.string().nullish(),
+  hasMore: zod.boolean(),
+});
+
+/**
+ * @summary Block a user
+ */
+export const BlockUserParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+/**
+ * @summary Unblock a user
+ */
+export const UnblockUserParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+/**
  * @summary Create a new golf shot post
  */
 export const CreatePostBody = zod.object({
@@ -362,6 +431,14 @@ export const CreateCommentParams = zod.object({
 
 export const CreateCommentBody = zod.object({
   text: zod.string(),
+});
+
+/**
+ * @summary Delete own comment
+ */
+export const DeleteCommentParams = zod.object({
+  postId: zod.coerce.string(),
+  commentId: zod.coerce.string(),
 });
 
 /**

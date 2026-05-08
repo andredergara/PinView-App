@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, notificationsTable, postsTable } from "@workspace/db";
 import { eq, sql, count } from "drizzle-orm";
-import { buildUserCard, enrichPost } from "./users";
+import { buildUserCard, enrichPost } from "./postHelpers";
 
 const router: IRouter = Router();
 

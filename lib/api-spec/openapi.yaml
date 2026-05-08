@@ -262,6 +262,59 @@ paths:
                 items:
                   $ref: "#/components/schemas/UserCard"
 
+  /users/{userId}/saved:
+    get:
+      operationId: getUserSaved
+      tags: [users]
+      summary: Get posts saved by a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 12
+      responses:
+        "200":
+          description: Saved posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostsPage"
+
+  /users/{userId}/block:
+    post:
+      operationId: blockUser
+      tags: [users]
+      summary: Block a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blocked
+
+    delete:
+      operationId: unblockUser
+      tags: [users]
+      summary: Unblock a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unblocked
+
   # Posts
   /posts:
     post:
@@ -417,6 +470,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Comment"
+
+  /posts/{postId}/comments/{commentId}:
+    delete:
+      operationId: deleteComment
+      tags: [posts]
+      summary: Delete own comment
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
 
   # Feed
   /feed:
@@ -597,6 +670,8 @@ components:
           type: integer
         followingCount:
           type: integer
+        isBlocked:
+          type: boolean
         postsCount:
           type: integer
         isFollowing:

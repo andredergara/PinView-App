@@ -19,6 +19,7 @@ export interface User {
   homeCourse?: string | null;
   followersCount: number;
   followingCount: number;
+  isBlocked?: boolean;
   postsCount: number;
   isFollowing: boolean;
   createdAt: string;
@@ -193,6 +194,10 @@ export interface CreateCommentBody {
 
 export type GetUserPostsParams = {
   cursor?: string;
+  limit?: number;
+};
+
+export type GetUserSavedParams = {
   limit?: number;
 };
 

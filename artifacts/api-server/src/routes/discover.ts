@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable, postsTable } from "@workspace/db";
 import { ilike, sql } from "drizzle-orm";
-import { enrichPost, buildUserCard } from "./users";
+import { enrichPost, buildUserCard } from "./postHelpers";
 
 const router: IRouter = Router();
 
@@ -24,7 +24,7 @@ router.get("/discover/search", async (req, res): Promise<void> => {
     users = await db
       .select()
       .from(usersTable)
-      .where(ilike(usersTable.username, pattern))
+      .where(sql`${usersTable.username} ILIKE ${pattern} OR ${usersTable.displayName} ILIKE ${pattern}`)
       .limit(10);
   }
 
