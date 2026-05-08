@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout";
+import { PinViewLogo } from "@/components/logo";
 import { useGetNotifications, useGetUnreadNotificationCount, useMarkNotificationsRead, getGetNotificationsQueryKey, getGetUnreadNotificationCountQueryKey } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,8 +80,8 @@ export default function Notifications() {
     <Layout>
       <div className="flex flex-col min-h-full pb-20">
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-border/50 px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-black text-white">Notifications</h1>
+        <div className="sticky top-0 z-20 backdrop-blur-xl border-b px-4 py-3.5 flex items-center justify-between" style={{ background: "rgba(13,13,13,0.95)", borderColor: "rgba(255,255,255,0.06)" }}>
+          <h1 className="text-base font-black text-white uppercase tracking-widest">Activity</h1>
           {(unreadData?.count ?? 0) > 0 && (
             <span className="px-2 py-0.5 rounded-full bg-primary text-black text-xs font-bold">
               {unreadData!.count} new

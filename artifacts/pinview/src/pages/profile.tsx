@@ -1,5 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
+import { PinViewLogo } from "@/components/logo";
 import { useGetUser, useGetUserPosts, useGetUserStats, useFollowUser, useUnfollowUser, getGetUserQueryKey, getGetUserPostsQueryKey, getGetUserStatsQueryKey } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,7 +114,10 @@ export default function Profile() {
     <Layout>
       <div className="flex flex-col min-h-full pb-20">
         {/* Header */}
-        <div className="relative px-4 pt-6 pb-4">
+        <div className="sticky top-0 z-20 backdrop-blur-xl border-b px-4 py-3" style={{ background: "rgba(13,13,13,0.95)", borderColor: "rgba(255,255,255,0.06)" }}>
+          <h1 className="text-base font-black text-white uppercase tracking-widest text-center">Profile</h1>
+        </div>
+        <div className="relative px-4 pt-5 pb-4">
           <div className="flex items-start gap-4">
             <Avatar className="w-20 h-20 border-2 border-primary/40 shrink-0">
               <AvatarImage src={user.avatarUrl} />

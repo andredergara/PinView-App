@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout";
+import { PinViewLogo } from "@/components/logo";
 import { useSearch, useGetTrendingCreators, useGetTrendingCourses, useGetTrendingPosts, getSearchQueryKey, getGetTrendingCreatorsQueryKey, getGetTrendingCoursesQueryKey, getGetTrendingPostsQueryKey, useFollowUser, useUnfollowUser } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,8 +59,11 @@ export default function Discover() {
     <Layout>
       <div className="flex flex-col min-h-full pb-20">
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-border/50 px-4 py-3">
-          <h1 className="text-xl font-black text-white mb-3">Discover</h1>
+        <div className="sticky top-0 z-20 backdrop-blur-xl border-b px-4 py-3" style={{ background: "rgba(13,13,13,0.95)", borderColor: "rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-base font-black text-white uppercase tracking-widest">Discover</h1>
+            <div className="brand-pill">● GOLF SHOTS</div>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <input
