@@ -1,0 +1,163 @@
+The comment system is partially working now, but the LIKE SYSTEM is STILL broken and the overall interaction UX still feels unfinished.
+
+Do NOT redesign the app.
+Do NOT touch branding/layout/colors.
+
+ONLY fix and polish:
+
+* likes
+* comment UX
+* timestamps
+* interaction smoothness
+
+---
+
+1. FIX THE LIKE SYSTEM COMPLETELY
+
+---
+
+Current issue:
+Users still cannot actually like videos.
+
+Requirements:
+
+* Clicking the heart icon MUST create a like in Supabase
+* Heart icon should instantly animate and turn RED when liked
+* Clicking again should unlike properly
+* Like counts should update immediately
+* Likes must persist after refresh/login
+* Prevent duplicate likes from same user
+
+The like interaction should feel:
+
+* instant
+* smooth
+* satisfying
+
+similar to:
+
+* TikTok
+* Instagram
+
+Add:
+
+* optimistic UI updates
+* subtle scale/pop animation on like
+* smooth transitions
+
+---
+
+2. DEBUG WHY LIKES ARE FAILING
+
+---
+
+Actively debug the current implementation.
+
+Likely causes:
+
+* Supabase insert failing
+* incorrect authenticated user ID
+* wrong post ID
+* frontend state not updating
+* duplicate constraint issues
+* async mutation failure
+
+Add console logs for:
+
+* authenticated user ID
+* post ID being liked
+* Supabase insert result
+* Supabase delete result
+* current like state
+
+DO NOT silently fail.
+
+---
+
+3. IMPROVE COMMENT SYSTEM UX
+
+---
+
+Comments technically work now but still feel clunky and unfinished.
+
+Improve:
+
+* comment loading speed
+* smooth rendering
+* instant appearance after posting
+* spacing/padding
+* transitions
+* mobile responsiveness
+
+Commenting should feel:
+
+* fast
+* polished
+* social-media quality
+
+---
+
+4. ADD COMMENT TIMESTAMPS
+
+---
+
+Add realistic timestamps beside comments similar to:
+
+* TikTok
+* Instagram
+
+Examples:
+
+* 5m
+* 2h
+* 1d
+* 3w
+
+Requirements:
+
+* dynamically calculate relative time from created_at
+* timestamps update correctly
+* keep timestamps subtle/minimal in UI
+
+Example format:
+username • 2h
+
+NOT:
+full ugly date strings.
+
+---
+
+5. COMMENT DATA REQUIREMENTS
+
+---
+
+Each comment should display:
+
+* profile picture
+* username
+* comment text
+* timestamp
+
+in a clean social-media style layout.
+
+---
+
+6. PRESERVE CURRENT DESIGN
+
+---
+
+Keep:
+
+* premium PinView aesthetic
+* golf-tech branding
+* dark theme
+* modern cinematic feel
+
+DO NOT redesign the app.
+
+ONLY improve:
+
+* interaction functionality
+* smoothness
+* realism
+* polish

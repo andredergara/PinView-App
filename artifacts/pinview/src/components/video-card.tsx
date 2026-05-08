@@ -1,31 +1,82 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 import { Post, useLikePost, useUnlikePost, useSavePost, useUnsavePost } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { useQueryClient } from "@tanstack/react-query";
-import { getGetFeedQueryKey } from "@workspace/api-client-react";
+import { useAuth } from "@/lib/auth";
+import { useState, useEffect } from "react";
 
 export function VideoCard({ post }: { post: Post }) {
-  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
   const likePost = useLikePost();
   const unlikePost = useUnlikePost();
   const savePost = useSavePost();
   const unsavePost = useUnsavePost();
 
+  const [isLiked, setIsLiked] = useState(post.isLiked);
+  const [likesCount, setLikesCount] = useState(post.likesCount);
+  const [isSaved, setIsSaved] = useState(post.isSaved);
+  const [savesCount, setSavesCount] = useState(post.savesCount);
+  const [likeAnimating, setLikeAnimating] = useState(false);
+
+  useEffect(() => {
+    setIsLiked(post.isLiked);
+    setLikesCount(post.likesCount);
+  }, [post.isLiked, post.likesCount]);
+
+  useEffect(() => {
+    setIsSaved(post.isSaved);
+    setSavesCount(post.savesCount);
+  }, [post.isSaved, post.savesCount]);
+
   const handleLike = () => {
-    if (post.isLiked) {
-      unlikePost.mutate({ postId: post.id });
+    if (!isAuthenticated) { setLocation("/login"); return; }
+
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikesCount(c => newIsLiked ? c + 1 : Math.max(0, c - 1));
+    setLikeAnimating(true);
+    setTimeout(() => setLikeAnimating(false), 350);
+
+    if (newIsLiked) {
+      likePost.mutate({ postId: post.id }, {
+        onError: () => {
+          setIsLiked(!newIsLiked);
+          setLikesCount(c => Math.max(0, c - 1));
+        },
+      });
     } else {
-      likePost.mutate({ postId: post.id });
+      unlikePost.mutate({ postId: post.id }, {
+        onError: () => {
+          setIsLiked(!newIsLiked);
+          setLikesCount(c => c + 1);
+        },
+      });
     }
   };
 
   const handleSave = () => {
-    if (post.isSaved) {
-      unsavePost.mutate({ postId: post.id });
+    if (!isAuthenticated) { setLocation("/login"); return; }
+
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    setSavesCount(c => newIsSaved ? c + 1 : Math.max(0, c - 1));
+
+    if (newIsSaved) {
+      savePost.mutate({ postId: post.id }, {
+        onError: () => {
+          setIsSaved(!newIsSaved);
+          setSavesCount(c => Math.max(0, c - 1));
+        },
+      });
     } else {
-      savePost.mutate({ postId: post.id });
+      unsavePost.mutate({ postId: post.id }, {
+        onError: () => {
+          setIsSaved(!newIsSaved);
+          setSavesCount(c => c + 1);
+        },
+      });
     }
   };
 
@@ -45,24 +96,51 @@ export function VideoCard({ post }: { post: Post }) {
             <AvatarFallback>{post.author.username[0].toUpperCase()}</AvatarFallback>
           </Avatar>
         </Link>
-        <button onClick={handleLike} className="flex flex-col items-center space-y-1 group" data-testid={`button-like-${post.id}`}>
-          <div className={cn("p-2 rounded-full backdrop-blur-md", post.isLiked ? "bg-red-500/20 text-red-500" : "bg-white/10 text-white")}>
-            <Heart className={cn("w-7 h-7", post.isLiked && "fill-current")} />
+
+        <button
+          onClick={handleLike}
+          className="flex flex-col items-center space-y-1"
+          data-testid={`button-like-${post.id}`}
+        >
+          <div
+            className={cn(
+              "p-2 rounded-full backdrop-blur-md transition-all duration-150",
+              isLiked ? "bg-red-500/20 text-red-500" : "bg-white/10 text-white",
+              likeAnimating && "scale-125",
+            )}
+            style={{ transform: likeAnimating ? "scale(1.3)" : "scale(1)", transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background-color 0.15s, color 0.15s" }}
+          >
+            <Heart
+              className={cn(
+                "w-7 h-7 transition-all duration-150",
+                isLiked && "fill-current",
+              )}
+            />
           </div>
-          <span className="text-white text-xs font-semibold drop-shadow-md">{post.likesCount}</span>
+          <span className="text-white text-xs font-semibold drop-shadow-md">{likesCount}</span>
         </button>
+
         <Link href={`/post/${post.id}`} className="flex flex-col items-center space-y-1">
           <div className="p-2 rounded-full backdrop-blur-md bg-white/10 text-white">
             <MessageCircle className="w-7 h-7" />
           </div>
           <span className="text-white text-xs font-semibold drop-shadow-md">{post.commentsCount}</span>
         </Link>
-        <button onClick={handleSave} className="flex flex-col items-center space-y-1" data-testid={`button-save-${post.id}`}>
-          <div className={cn("p-2 rounded-full backdrop-blur-md", post.isSaved ? "bg-primary/20 text-primary" : "bg-white/10 text-white")}>
-            <Bookmark className={cn("w-7 h-7", post.isSaved && "fill-current")} />
+
+        <button
+          onClick={handleSave}
+          className="flex flex-col items-center space-y-1"
+          data-testid={`button-save-${post.id}`}
+        >
+          <div className={cn(
+            "p-2 rounded-full backdrop-blur-md transition-all duration-150",
+            isSaved ? "bg-primary/20 text-primary" : "bg-white/10 text-white",
+          )}>
+            <Bookmark className={cn("w-7 h-7 transition-all duration-150", isSaved && "fill-current")} />
           </div>
-          <span className="text-white text-xs font-semibold drop-shadow-md">{post.savesCount}</span>
+          <span className="text-white text-xs font-semibold drop-shadow-md">{savesCount}</span>
         </button>
+
         <button className="flex flex-col items-center space-y-1" data-testid={`button-share-${post.id}`}>
           <div className="p-2 rounded-full backdrop-blur-md bg-white/10 text-white">
             <Share2 className="w-7 h-7" />

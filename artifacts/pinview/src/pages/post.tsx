@@ -1,23 +1,27 @@
 import { useParams, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
-import { useGetPost, useGetPostComments, useCreateComment, useLikePost, useUnlikePost, useSavePost, useUnsavePost, useDeleteComment, getGetPostQueryKey, getGetPostCommentsQueryKey } from "@workspace/api-client-react";
+import { useGetPost, useGetPostComments, useCreateComment, useLikePost, useUnlikePost, useSavePost, useUnsavePost, useDeleteComment, getGetPostQueryKey, getGetPostCommentsQueryKey, Comment } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { Heart, MessageCircle, Bookmark, ChevronLeft, Send, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  const w = Math.floor(d / 7);
+  if (w < 52) return `${w}w`;
+  return `${Math.floor(w / 52)}y`;
 }
 
 export default function PostPage() {
@@ -26,6 +30,7 @@ export default function PostPage() {
   const { user: currentUser, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [commentText, setCommentText] = useState("");
+  const commentsEndRef = useRef<HTMLDivElement>(null);
 
   const { data: post, isLoading } = useGetPost(params.postId, {
     query: { enabled: !!params.postId, queryKey: getGetPostQueryKey(params.postId) },
@@ -41,53 +46,117 @@ export default function PostPage() {
   const createComment = useCreateComment();
   const deleteComment = useDeleteComment();
 
+  // Optimistic like state
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [likeAnimating, setLikeAnimating] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (post) {
+      setIsLiked(post.isLiked);
+      setLikesCount(post.likesCount);
+      setIsSaved(post.isSaved);
+    }
+  }, [post?.isLiked, post?.likesCount, post?.isSaved]);
+
   const handleLike = () => {
     if (!isAuthenticated) { setLocation("/login"); return; }
-    if (post?.isLiked) {
-      unlikePost.mutate({ postId: params.postId }, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) }),
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikesCount(c => newIsLiked ? c + 1 : Math.max(0, c - 1));
+    setLikeAnimating(true);
+    setTimeout(() => setLikeAnimating(false), 350);
+
+    if (newIsLiked) {
+      likePost.mutate({ postId: params.postId }, {
+        onError: () => {
+          setIsLiked(!newIsLiked);
+          setLikesCount(c => Math.max(0, c - 1));
+        },
       });
     } else {
-      likePost.mutate({ postId: params.postId }, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) }),
+      unlikePost.mutate({ postId: params.postId }, {
+        onError: () => {
+          setIsLiked(!newIsLiked);
+          setLikesCount(c => c + 1);
+        },
       });
     }
   };
 
   const handleSave = () => {
     if (!isAuthenticated) { setLocation("/login"); return; }
-    if (post?.isSaved) {
-      unsavePost.mutate({ postId: params.postId }, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) }),
-      });
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    if (newIsSaved) {
+      savePost.mutate({ postId: params.postId }, { onError: () => setIsSaved(!newIsSaved) });
     } else {
-      savePost.mutate({ postId: params.postId }, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) }),
-      });
+      unsavePost.mutate({ postId: params.postId }, { onError: () => setIsSaved(!newIsSaved) });
     }
   };
 
   const handleComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim() || !isAuthenticated) return;
+    const text = commentText.trim();
+    if (!text || !isAuthenticated || !currentUser) return;
+
+    // Clear input immediately
+    setCommentText("");
+
+    // Optimistic insert — add comment to cache right now
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: tempId,
+      text,
+      createdAt: new Date().toISOString(),
+      author: {
+        id: currentUser.id,
+        username: currentUser.username,
+        displayName: currentUser.displayName,
+        avatarUrl: currentUser.avatarUrl,
+        followersCount: 0,
+        isFollowing: false,
+      },
+    };
+    queryClient.setQueryData<Comment[]>(
+      getGetPostCommentsQueryKey(params.postId),
+      (prev) => [...(prev ?? []), optimisticComment],
+    );
+
     createComment.mutate(
-      { postId: params.postId, data: { text: commentText } },
+      { postId: params.postId, data: { text } },
       {
         onSuccess: () => {
-          setCommentText("");
+          // Replace temp comment with real data
           queryClient.invalidateQueries({ queryKey: getGetPostCommentsQueryKey(params.postId) });
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) });
+        },
+        onError: () => {
+          // Remove the optimistic comment on failure
+          queryClient.setQueryData<Comment[]>(
+            getGetPostCommentsQueryKey(params.postId),
+            (prev) => (prev ?? []).filter(c => c.id !== tempId),
+          );
+          setCommentText(text);
         },
       }
     );
   };
 
   const handleDeleteComment = (commentId: string) => {
+    // Optimistic remove
+    queryClient.setQueryData<Comment[]>(
+      getGetPostCommentsQueryKey(params.postId),
+      (prev) => (prev ?? []).filter(c => c.id !== commentId),
+    );
     deleteComment.mutate(
       { postId: params.postId, commentId },
       {
-        onSuccess: () => {
+        onError: () => {
           queryClient.invalidateQueries({ queryKey: getGetPostCommentsQueryKey(params.postId) });
+        },
+        onSettled: () => {
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(params.postId) });
         },
       }
@@ -173,15 +242,21 @@ export default function PostPage() {
                 onClick={handleLike}
                 className="flex items-center gap-1.5"
               >
-                <Heart className={cn("w-6 h-6 transition-all", post.isLiked ? "text-red-500 fill-current" : "text-white/60")} />
-                <span className="text-white/60 text-sm">{post.likesCount}</span>
+                <Heart
+                  className={cn(
+                    "w-6 h-6 transition-all duration-150",
+                    isLiked ? "text-red-500 fill-current" : "text-white/60",
+                  )}
+                  style={{ transform: likeAnimating ? "scale(1.35)" : "scale(1)", transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1), color 0.15s, fill 0.15s" }}
+                />
+                <span className="text-white/60 text-sm tabular-nums">{likesCount}</span>
               </button>
               <button
                 data-testid={`button-save-post-${post.id}`}
                 onClick={handleSave}
                 className="flex items-center gap-1.5"
               >
-                <Bookmark className={cn("w-6 h-6 transition-all", post.isSaved ? "text-primary fill-current" : "text-white/60")} />
+                <Bookmark className={cn("w-6 h-6 transition-all duration-150", isSaved ? "text-primary fill-current" : "text-white/60")} />
               </button>
             </div>
           </div>
@@ -222,8 +297,16 @@ export default function PostPage() {
           <div className="space-y-4">
             {(comments || []).map(comment => {
               const isMyComment = currentUser?.id === comment.author?.id;
+              const isTemp = comment.id.startsWith("temp-");
               return (
-                <div key={comment.id} data-testid={`comment-${comment.id}`} className="flex gap-3 group">
+                <div
+                  key={comment.id}
+                  data-testid={`comment-${comment.id}`}
+                  className={cn(
+                    "flex gap-3 group transition-opacity duration-200",
+                    isTemp && "opacity-60",
+                  )}
+                >
                   <Link href={`/profile/${comment.author?.id}`}>
                     <Avatar className="w-8 h-8 shrink-0">
                       <AvatarImage src={comment.author?.avatarUrl} />
@@ -232,19 +315,19 @@ export default function PostPage() {
                       </AvatarFallback>
                     </Avatar>
                   </Link>
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="text-white text-sm font-semibold">@{comment.author?.username}</span>
-                      <span className="text-white/20 text-xs">{timeAgo(comment.createdAt)}</span>
+                      <span className="text-white/25 text-xs">{timeAgo(comment.createdAt)}</span>
                     </div>
-                    <p className="text-white/70 text-sm mt-0.5">{comment.text}</p>
+                    <p className="text-white/75 text-sm mt-0.5 leading-snug break-words">{comment.text}</p>
                   </div>
-                  {isMyComment && (
+                  {isMyComment && !isTemp && (
                     <button
                       data-testid={`button-delete-comment-${comment.id}`}
                       onClick={() => handleDeleteComment(comment.id)}
                       disabled={deleteComment.isPending}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all self-start mt-0.5"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all self-start mt-0.5 shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -253,15 +336,22 @@ export default function PostPage() {
               );
             })}
             {(comments?.length ?? 0) === 0 && (
-              <p className="text-white/20 text-sm text-center py-4">No comments yet. Be first.</p>
+              <p className="text-white/20 text-sm text-center py-6">No comments yet. Be first.</p>
             )}
           </div>
+          <div ref={commentsEndRef} />
         </div>
 
         {/* Comment input */}
         {isAuthenticated && (
           <div className="sticky bottom-16 bg-background/95 backdrop-blur-xl border-t border-white/5 px-4 py-3">
-            <form onSubmit={handleComment} className="flex gap-2">
+            <form onSubmit={handleComment} className="flex gap-2 items-center">
+              <Avatar className="w-7 h-7 shrink-0">
+                <AvatarImage src={currentUser?.avatarUrl} />
+                <AvatarFallback className="bg-white/5 text-white/60 text-xs">
+                  {currentUser?.username?.[0]?.toUpperCase() ?? "?"}
+                </AvatarFallback>
+              </Avatar>
               <input
                 data-testid="input-comment"
                 value={commentText}
@@ -273,7 +363,7 @@ export default function PostPage() {
                 data-testid="button-submit-comment"
                 type="submit"
                 disabled={!commentText.trim() || createComment.isPending}
-                className="p-2 rounded-xl bg-primary text-black disabled:opacity-30 transition-all"
+                className="p-2 rounded-xl bg-primary text-black disabled:opacity-30 transition-all active:scale-95"
               >
                 <Send className="w-5 h-5" />
               </button>
