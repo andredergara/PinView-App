@@ -22,7 +22,7 @@ function StatBadge({ label, value }: { label: string; value: string | number }) 
 
 export default function Profile() {
   const params = useParams<{ userId?: string }>();
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -57,13 +57,23 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    logout.mutate({}, {
+    logout.mutate(undefined, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
         setLocation("/login");
       },
     });
   };
+
+  if (authLoading && !params.userId) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center flex-1 pb-20">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!isAuthenticated && !params.userId) {
     return (

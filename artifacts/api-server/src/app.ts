@@ -35,15 +35,32 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const isProduction = process.env.NODE_ENV === "production";
+// Treat as production when either NODE_ENV=production OR REPLIT_DEPLOYMENT is set.
+// The Replit deployment runner does not inject NODE_ENV, so check both.
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  !!process.env.REPLIT_DEPLOYMENT;
+
+logger.info(
+  {
+    isProduction,
+    NODE_ENV: process.env.NODE_ENV,
+    REPLIT_DEPLOYMENT: !!process.env.REPLIT_DEPLOYMENT,
+  },
+  "Session config",
+);
+
+const pgStore = new PgStore({
+  pool,
+  tableName: "sessions",
+  createTableIfMissing: true,
+  errorLog: (...args: unknown[]) =>
+    logger.error({ args }, "Session store error"),
+});
 
 app.use(
   session({
-    store: new PgStore({
-      pool,
-      tableName: "sessions",
-      createTableIfMissing: true,
-    }),
+    store: pgStore,
     secret: process.env.SESSION_SECRET ?? "pinview-dev-secret",
     resave: false,
     saveUninitialized: false,

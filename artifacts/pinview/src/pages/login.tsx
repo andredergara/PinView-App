@@ -22,8 +22,8 @@ export default function Login() {
     login.mutate(
       { data: { email: form.email, password: form.password } },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        onSuccess: (data) => {
+          queryClient.setQueryData(getGetMeQueryKey(), data.user);
           setLocation("/");
         },
         onError: () => setError("Invalid credentials. Please try again."),
@@ -45,8 +45,8 @@ export default function Login() {
         },
       },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        onSuccess: (data) => {
+          queryClient.setQueryData(getGetMeQueryKey(), data.user);
           setLocation("/");
         },
         onError: (err: unknown) => {

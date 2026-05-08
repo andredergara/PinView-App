@@ -38,7 +38,7 @@ const typeColor: Record<string, string> = {
 };
 
 export default function Notifications() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -52,7 +52,7 @@ export default function Notifications() {
 
   useEffect(() => {
     if (isAuthenticated && (unreadData?.count ?? 0) > 0) {
-      markRead.mutate({}, {
+      markRead.mutate(undefined, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetUnreadNotificationCountQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetNotificationsQueryKey({ limit: 30 }) });
@@ -60,6 +60,16 @@ export default function Notifications() {
       });
     }
   }, [isAuthenticated, unreadData?.count]);
+
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center flex-1 pb-20">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

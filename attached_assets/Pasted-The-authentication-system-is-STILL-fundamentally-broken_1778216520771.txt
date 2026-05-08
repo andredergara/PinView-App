@@ -1,0 +1,133 @@
+The authentication system is STILL fundamentally broken.
+
+Current issue:
+Users can successfully log in, but the moment they:
+
+* navigate to another page
+* click around the app
+* refresh
+* switch routes
+
+the app instantly signs them out or loses the authenticated session.
+
+This is NOT fixed.
+
+Stop giving generic auth responses and fully debug the actual session persistence architecture.
+
+---
+
+## CRITICAL REQUIREMENTS
+
+1. FIX SUPABASE SESSION PERSISTENCE
+   The authenticated Supabase session must persist correctly across:
+
+* route changes
+* page refreshes
+* mobile navigation
+* browser reloads
+* app restarts
+
+Users should remain logged in until they explicitly sign out.
+
+---
+
+2. IMPLEMENT PROPER AUTH STATE MANAGEMENT
+   Use:
+
+* onAuthStateChange
+* getSession()
+* persistent auth listener
+* centralized auth provider/context
+
+The app should:
+
+* initialize auth on startup
+* restore existing sessions automatically
+* prevent temporary null-session flashes
+
+---
+
+3. FIX REACT ROUTING AUTH BUGS
+   The issue likely comes from:
+
+* protected routes re-rendering incorrectly
+* auth context resetting
+* navigation causing session loss
+
+Audit:
+
+* React Router setup
+* auth guards
+* page transitions
+* auth provider mounting/unmounting
+
+Ensure auth state is NOT recreated on every route change.
+
+---
+
+4. PREVENT INSTANT SIGN OUTS
+   DO NOT:
+
+* clear local auth storage
+* reset Supabase client
+* destroy session on navigation
+* create duplicate Supabase clients
+
+There should only be ONE persistent Supabase client instance for the entire app.
+
+---
+
+5. FIX LOCAL STORAGE / TOKEN HANDLING
+   Ensure:
+
+* Supabase auth tokens persist correctly
+* browser storage is not being wiped
+* session refresh tokens are maintained
+* auth cookies/local storage remain intact
+
+---
+
+6. ADD REAL DEBUGGING
+   Add console logs for:
+
+* current authenticated user ID
+* session existence
+* auth state changes
+* token refresh events
+* route transitions
+
+Track EXACTLY where the session becomes null.
+
+---
+
+7. AUTH LOADING STATE
+   Do NOT redirect users before auth initialization finishes.
+
+Add:
+
+* proper auth loading state
+* session restoration screen
+* delayed route rendering until auth check completes
+
+A very common bug is:
+
+* app renders before session restores
+* app incorrectly assumes user is logged out
+
+---
+
+8. MOBILE NAVIGATION COMPATIBILITY
+   Ensure authentication persists correctly on:
+
+* iPhone Safari
+* Android Chrome
+* desktop browsers
+
+---
+
+9. IMPORTANT
+   DO NOT redesign the app.
+   DO NOT touch branding/UI.
+   ONLY fix the broken authentication/session persistence system.
+
+This is currently the biggest issue in the entire platform and makes the app unusable.
