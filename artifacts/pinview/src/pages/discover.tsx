@@ -166,12 +166,13 @@ export default function Discover() {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        // Append a "golf" hint when the user hasn't typed golf terms yet —
-        // this biases Photon's ranking toward golf venues over towns/roads.
-        const photonQ = /golf|country club|links|gc\b/i.test(query.trim())
-          ? query
-          : `${query} golf`;
-        const params = new URLSearchParams({ q: photonQ, limit: "30" });
+        // osm_tag filter restricts results to OSM leisure=golf_course features only —
+        // no geographic noise, every result is a real golf course.
+        const params = new URLSearchParams({
+          q: query,
+          limit: "10",
+          osm_tag: "leisure:golf_course",
+        });
         const res = await fetch(`https://photon.komoot.io/api/?${params}`, {
           signal: controller.signal,
         });
@@ -180,11 +181,7 @@ export default function Discover() {
         const results: CourseSuggestion[] = [];
         for (const f of data.features ?? []) {
           const p = f.properties ?? {};
-          // Keep only golf-course-tagged features or names containing golf/country club/links
-          const isGolf =
-            p.osm_value === "golf_course" ||
-            /golf|country club|links/i.test(p.name ?? "");
-          if (!isGolf || !p.name) continue;
+          if (!p.name) continue;
           const key = p.name.toLowerCase();
           if (seen.has(key)) continue;
           seen.add(key);
@@ -192,7 +189,6 @@ export default function Discover() {
             .filter(Boolean)
             .join(", ");
           results.push({ name: p.name, location: loc });
-          if (results.length >= 8) break;
         }
         setCourseSuggestions(results);
       } catch (e) {
