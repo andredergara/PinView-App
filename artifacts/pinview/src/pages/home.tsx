@@ -37,17 +37,25 @@ export default function Home() {
           )}
 
           {!isLoading && posts.length === 0 && (
-            <div className="w-full h-full flex flex-col items-center justify-center text-center p-8">
-              <div className="mb-6">
+            <div className="w-full h-[100dvh] flex flex-col items-center justify-center text-center px-8">
+              <div className="mb-8">
                 <PinViewLogo size="lg" />
               </div>
-              <div className="brand-pill mb-4">● GOLF REPLAY TECHNOLOGY</div>
-              <h2 className="text-2xl font-black text-white tracking-tight mb-2">
-                EVERY SHOT. CAPTURED.
+              <div className="brand-pill mb-6">● EARLY ACCESS</div>
+              <h2 className="text-2xl font-black text-white tracking-tight mb-3">
+                YOUR FEED STARTS HERE
               </h2>
-              <p className="text-white/40 text-sm max-w-[260px] leading-relaxed">
-                Follow golfers to fill your feed, or head to Discover to find the best shots.
+              <p className="text-white/40 text-sm max-w-[260px] leading-relaxed mb-8">
+                Follow golfers or upload your first shot to fill this feed.
               </p>
+              <div className="flex flex-col gap-3 w-full max-w-[240px]">
+                <a href="/discover" className="btn-brand py-3 px-6 rounded-xl text-sm font-bold text-center">
+                  Find Golfers to Follow
+                </a>
+                <a href="/upload" className="py-3 px-6 rounded-xl text-sm font-bold text-center border border-white/15 text-white/60 hover:text-white transition-colors">
+                  Upload Your First Shot
+                </a>
+              </div>
             </div>
           )}
 

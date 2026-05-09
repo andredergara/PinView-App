@@ -294,7 +294,13 @@ export default function Discover() {
                     {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-[72px] rounded-xl" />)}
                   </div>
                 ) : (creators ?? []).length === 0 ? (
-                  <p className="text-white/20 text-sm py-4 text-center">No golfers yet</p>
+                  <div className="py-10 text-center">
+                    <p className="text-white/50 font-semibold text-sm mb-1">No golfers yet</p>
+                    <p className="text-white/20 text-xs">Be one of the first creators on PinView.</p>
+                    <a href="/upload" className="inline-block mt-4 px-5 py-2 rounded-full border border-primary/40 text-primary text-xs font-bold hover:bg-primary/10 transition-colors">
+                      Upload Your First Shot
+                    </a>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {(creators ?? []).slice(0, 8).map(user => (

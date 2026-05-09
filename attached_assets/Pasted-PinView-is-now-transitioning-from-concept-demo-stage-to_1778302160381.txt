@@ -1,0 +1,206 @@
+PinView is now transitioning from:
+
+* concept/demo stage
+  to
+* REAL public launch preparation.
+
+It is time to REMOVE all fake/demo/seeded ecosystem content and convert the app into a real clean production-ready social platform.
+
+IMPORTANT:
+Do NOT redesign the app.
+Do NOT change branding/colors/UI style.
+
+Keep the premium PinView identity exactly as it is.
+
+ONLY remove concept/demo elements and transition the platform toward authentic real-user usage.
+
+---
+
+1. REMOVE ALL FAKE/SEEDED ACCOUNTS
+
+---
+
+Delete ALL seeded/demo/test creator accounts including:
+
+* fake golfers
+* mock influencers
+* seeded creators
+* placeholder users
+
+ONLY retain:
+
+* accounts created by real human users
+* legitimate registered accounts
+
+Remove:
+
+* fake follows
+* fake likes
+* fake comments
+* fake saves
+* fake engagement
+
+The platform should now reflect REAL activity only.
+
+---
+
+2. REMOVE MOCK SOCIAL DATA
+
+---
+
+Delete all:
+
+* seeded posts
+* demo videos
+* fake discover content
+* fake notifications
+* fake follower counts
+* fake comments
+* fake likes
+
+The app should no longer simulate activity.
+
+---
+
+3. CLEAN DISCOVER PAGE
+
+---
+
+The Discover page should now dynamically populate ONLY from:
+
+* real uploaded videos
+* real users
+* real engagement
+
+If activity is low:
+display elegant empty states instead of fake content.
+
+Example:
+
+* “No trending golfers yet.”
+* “Be one of the first creators on PinView.”
+* “Upload your first shot.”
+
+Keep it premium and minimal.
+
+---
+
+4. CLEAN FEED EXPERIENCE
+
+---
+
+The Home feed should now:
+
+* pull only real uploaded posts
+* show real creators
+* show real engagement
+
+If there are no posts:
+display a polished onboarding-style empty state encouraging uploads.
+
+NO fake ecosystem anymore.
+
+---
+
+5. REMOVE DEMO METRICS
+
+---
+
+Delete:
+
+* fake follower counts
+* fake replay counts
+* fake engagement numbers
+* fake trending stats
+
+Only real database-driven metrics should exist now.
+
+---
+
+6. KEEP AUTHENTIC USER DATA ONLY
+
+---
+
+Preserve:
+
+* real uploaded posts
+* real comments
+* real follows
+* real profiles
+* real interaction history
+
+DO NOT accidentally wipe legitimate user accounts.
+
+---
+
+7. ADD “EARLY ACCESS” FEEL
+
+---
+
+The app should now feel like:
+
+* an exclusive early-stage social platform
+* clean
+* minimal
+* authentic
+
+NOT:
+
+* artificially populated
+* fake-active
+* seeded
+
+It is okay if the platform feels early-stage as long as it feels REAL.
+
+---
+
+8. ADD BETTER EMPTY STATES
+
+---
+
+Instead of fake content, use polished onboarding prompts.
+
+Examples:
+
+* “No videos yet.”
+* “Upload the first shot.”
+* “Your golf content feed starts here.”
+* “Follow golfers to build your feed.”
+
+Keep messaging:
+
+* premium
+* modern
+* golfer-focused
+
+---
+
+9. DATABASE CLEANUP
+
+---
+
+Properly remove:
+
+* seeded user rows
+* fake follows
+* fake likes
+* fake comments
+* fake notifications
+* seeded posts/media
+
+Ensure database integrity remains intact.
+
+---
+
+10. IMPORTANT
+
+---
+
+DO NOT redesign the platform.
+DO NOT change branding.
+DO NOT alter the premium dark golf-tech aesthetic.
+
+ONLY transition PinView from:
+“concept demo”
+into:
+“real early-stage social platform preparing for public launch.”
