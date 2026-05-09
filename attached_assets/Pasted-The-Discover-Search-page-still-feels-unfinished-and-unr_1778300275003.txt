@@ -1,0 +1,139 @@
+The Discover/Search page still feels unfinished and unrealistic.
+
+Do NOT redesign the app or branding.
+ONLY fix the actual social/discover functionality and UX polish.
+
+---
+
+1. REMOVE ABILITY TO FOLLOW YOURSELF
+
+---
+
+Current issue:
+Users are seeing Follow buttons on their own accounts.
+
+This should NEVER happen in a real social platform.
+
+Requirements:
+
+* If the discovered profile belongs to the currently authenticated user:
+
+  * remove Follow button entirely
+    OR
+  * replace with “Edit Profile”
+
+The app must correctly compare:
+
+* authenticated user ID
+  vs
+* profile user ID
+
+before rendering follow actions.
+
+---
+
+2. FIX DISCOVER PAGE LOGIC
+
+---
+
+The Discover page still feels broken and inconsistent.
+
+Requirements:
+
+* Search results should load smoothly
+* Users should appear consistently
+* No duplicate profiles
+* No flickering/reloading issues
+* Proper loading states
+* Better empty states
+
+The experience should feel:
+
+* polished
+* responsive
+* production-ready
+
+---
+
+3. FIX FOLLOW STATE DETECTION
+
+---
+
+The app must correctly determine:
+
+* whether user already follows another account
+* whether profile belongs to current user
+* whether follow relationship exists
+
+Current follow logic feels unreliable.
+
+Add proper:
+
+* Supabase follow relationship queries
+* state synchronization
+* optimistic UI updates
+
+---
+
+4. IMPROVE DISCOVER CARD UX
+
+---
+
+Polish user cards:
+
+* smoother transitions
+* better spacing
+* cleaner alignment
+* faster loading
+
+Keep the SAME branding/style.
+
+DO NOT redesign the aesthetic.
+
+---
+
+5. ADD CLICKABLE PROFILE NAVIGATION
+
+---
+
+When tapping a user:
+
+* smoothly open their profile page
+* preserve scroll behavior
+* preserve app state
+
+Profiles should feel connected like a real social platform.
+
+---
+
+6. DEBUG AUTHENTICATED USER CONTEXT
+
+---
+
+Add debugging logs for:
+
+* authenticated user ID
+* searched profile ID
+* follow relationship status
+
+This is likely where the self-follow bug is occurring.
+
+---
+
+7. KEEP CURRENT DESIGN
+
+---
+
+Maintain:
+
+* premium PinView branding
+* dark golf-tech aesthetic
+* cinematic feel
+* modern social UI
+
+ONLY improve:
+
+* realism
+* interaction logic
+* social functionality
+* UX smoothness
