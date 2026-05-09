@@ -1,0 +1,183 @@
+The PinView feed currently feels empty and unrealistic because it lacks authentic golf content.
+
+Do NOT redesign the app.
+Do NOT change branding/colors/layout.
+
+ONLY improve the realism and immersion of the social feed experience by adding high-quality SAMPLE GOLF CONTENT throughout the platform.
+
+---
+
+## GOAL
+
+Make PinView feel like a REAL active golf social platform with believable golf creators, videos, engagement, and profiles.
+
+The app should immediately feel alive when opened.
+
+---
+
+1. ADD REALISTIC SAMPLE GOLF VIDEOS
+
+---
+
+Populate the feed with realistic placeholder golf content.
+
+The videos should feel like:
+
+* TikTok golf clips
+* Instagram golf reels
+* Good Good style content
+* iPhone golf recordings
+
+Video style:
+
+* vertical format
+* golfer filmed from behind
+* tee shots
+* iron shots
+* stingers
+* range sessions
+* golf course scenery
+* satisfying ball flights
+
+Avoid:
+
+* random unrelated footage
+* generic stock videos
+* non-golf content
+
+---
+
+2. CREATE SAMPLE CREATOR ACCOUNTS
+
+---
+
+Generate believable sample golfer profiles.
+
+Examples:
+
+* @stingerking
+* @drawdoctor
+* @scratchgolfer
+* @golfdaily
+* @leftyfade
+* @weekendstick
+
+Each sample profile should include:
+
+* username
+* profile picture
+* handicap
+* follower count
+* uploaded golf videos
+
+The ecosystem should feel believable and active.
+
+---
+
+3. ADD REALISTIC SAMPLE ENGAGEMENT
+
+---
+
+Populate content with believable:
+
+* likes
+* comments
+* saves
+* views
+
+Examples:
+
+* “Absolute rope.”
+* “Pure.”
+* “That tracer is unreal.”
+* “What club was this?”
+
+Keep engagement:
+
+* realistic
+* minimal
+* premium
+* golf-focused
+
+Avoid cringe/overdone comments.
+
+---
+
+4. IMPROVE FEED IMMERSION
+
+---
+
+The home feed should feel:
+
+* dynamic
+* smooth
+* alive
+* addictive
+
+Improve:
+
+* autoplay transitions
+* loading smoothness
+* video rendering
+* feed spacing
+* mobile responsiveness
+
+The feed should resemble:
+
+* TikTok
+* Instagram Reels
+
+but with a premium golf-tech atmosphere.
+
+---
+
+5. IMPROVE VIDEO PRESENTATION
+
+---
+
+Videos should:
+
+* fill the mobile screen properly
+* crop correctly
+* autoplay smoothly
+* support mute/unmute
+* feel immersive
+
+Avoid:
+
+* awkward empty spacing
+* static cards
+* broken layouts
+
+---
+
+6. KEEP CURRENT BRANDING
+
+---
+
+Maintain:
+
+* PinView branding
+* dark premium UI
+* green accents
+* cinematic golf aesthetic
+
+DO NOT redesign the app.
+
+---
+
+7. IMPORTANT
+
+---
+
+This is NOT fake placeholder UI anymore.
+
+The goal is to make PinView feel like:
+
+* a real active golf social platform
+* with believable creators
+* believable golf content
+* believable engagement
+
+When opening the app, users should immediately understand:
+“This is where golfers post and discover great golf shots.”
