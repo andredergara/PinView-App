@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/layout";
 import {
   useSearch, useGetTrendingCreators, useGetTrendingCourses, useGetTrendingPosts,
@@ -13,6 +13,7 @@ import { Search, MapPin, TrendingUp, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { searchCourses, type GolfCourse } from "@/data/golf-courses";
 
 // FollowButton with:
 // - optimistic local state (no refetch flicker)
@@ -148,7 +149,23 @@ function CreatorRow({ user, currentUserId }: { user: UserCard; currentUserId: st
 
 export default function Discover() {
   const [query, setQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { user: currentUser } = useAuth();
+
+  // Worldwide course suggestions (instant, client-side)
+  const courseSuggestions: GolfCourse[] = query.length >= 2 ? searchCourses(query, 8) : [];
+
+  // Close suggestions when clicking outside the search container
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // Show search results whenever query has 2+ chars — no blur dependency
   const isSearching = query.length > 1;
@@ -180,23 +197,56 @@ export default function Discover() {
             <h1 className="text-base font-black text-white uppercase tracking-widest">Discover</h1>
             <div className="brand-pill">● GOLF SHOTS</div>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+          <div className="relative" ref={searchRef}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none z-10" />
             <input
               data-testid="input-search"
               type="search"
               placeholder="Search golfers, courses..."
               value={query}
-              onChange={e => setQuery(e.target.value)}
+              onChange={e => { setQuery(e.target.value); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={e => { if (e.key === "Escape") { setShowSuggestions(false); } }}
               className="w-full pl-10 pr-9 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-primary/60 transition-colors"
             />
             {query.length > 0 && (
               <button
-                onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                onClick={() => { setQuery(""); setShowSuggestions(false); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors z-10"
               >
                 <X className="w-4 h-4" />
               </button>
+            )}
+
+            {/* ── Worldwide course autocomplete dropdown ── */}
+            {showSuggestions && courseSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 rounded-xl border border-white/10 shadow-2xl z-50 overflow-hidden"
+                style={{ background: "rgba(18,18,18,0.98)", backdropFilter: "blur(16px)" }}
+              >
+                <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-1.5 border-b border-white/[0.06]">
+                  <MapPin className="w-3 h-3 text-primary/60" />
+                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Course suggestions</span>
+                </div>
+                {courseSuggestions.map(course => (
+                  <button
+                    key={course.name}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.05] active:bg-white/[0.08] transition-colors text-left"
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      setQuery(course.name);
+                      setShowSuggestions(false);
+                    }}
+                  >
+                    <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                      <MapPin className="w-3 h-3 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white text-sm font-medium leading-snug truncate">{course.name}</p>
+                      <p className="text-white/35 text-[11px] truncate">{course.location}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -222,29 +272,56 @@ export default function Discover() {
                     </div>
                   )}
 
-                  {(searchResults?.courses?.length ?? 0) > 0 && (
-                    <div>
-                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Courses</h3>
-                      <div className="space-y-2">
-                        {searchResults!.courses.map(course => (
-                          <div key={course.name} data-testid={`card-course-${course.name}`}
-                            className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]"
-                          >
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                              <MapPin className="w-4 h-4 text-primary" />
+                  {/* DB courses that have shots + worldwide suggestions merged */}
+                  {(() => {
+                    const dbCourses = searchResults?.courses ?? [];
+                    const dbNames = new Set(dbCourses.map(c => c.name.toLowerCase()));
+                    // Worldwide matches not already in DB results
+                    const worldwideExtra = courseSuggestions.filter(
+                      c => !dbNames.has(c.name.toLowerCase())
+                    );
+                    const hasAnyCourses = dbCourses.length > 0 || worldwideExtra.length > 0;
+                    if (!hasAnyCourses) return null;
+                    return (
+                      <div>
+                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Courses</h3>
+                        <div className="space-y-2">
+                          {dbCourses.map(course => (
+                            <div key={course.name} data-testid={`card-course-${course.name}`}
+                              className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]"
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                                <MapPin className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white font-semibold text-sm truncate">{course.name}</p>
+                                <p className="text-white/40 text-xs">{course.postsCount} shots on PinView</p>
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-white font-semibold text-sm truncate">{course.name}</p>
-                              <p className="text-white/40 text-xs">{course.postsCount} shots</p>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                          {worldwideExtra.map(course => (
+                            <button
+                              key={course.name}
+                              className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-colors text-left"
+                              onClick={() => setQuery(course.name)}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.07] flex items-center justify-center shrink-0">
+                                <MapPin className="w-4 h-4 text-white/30" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white/70 font-semibold text-sm truncate">{course.name}</p>
+                                <p className="text-white/30 text-xs truncate">{course.location}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {(searchResults?.users?.length ?? 0) === 0 &&
-                   (searchResults?.courses?.length ?? 0) === 0 && (
+                   (searchResults?.courses?.length ?? 0) === 0 &&
+                   courseSuggestions.length === 0 && (
                     <div className="text-center py-16 text-white/30">
                       <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
                       <p className="font-semibold">No results for "{query}"</p>
