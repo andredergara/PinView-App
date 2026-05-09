@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout";
 import { PinViewLogo } from "@/components/logo";
 import {
   useGetUser, useGetUserPosts, useGetUserStats, useGetUserSaved, useGetUserFollowers, useGetUserFollowing,
-  useFollowUser, useUnfollowUser, useBlockUser, useUnblockUser,
+  useFollowUser, useUnfollowUser, useBlockUser, useUnblockUser, useDeletePost,
   getGetUserQueryKey, getGetUserPostsQueryKey, getGetUserStatsQueryKey, getGetUserSavedQueryKey,
   getGetUserFollowersQueryKey, getGetUserFollowingQueryKey,
 } from "@workspace/api-client-react";
@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAuth } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Settings, MapPin, Target, Grid3X3, Bookmark, UserX, UserCheck, ShieldX } from "lucide-react";
+import { Settings, MapPin, Target, Grid3X3, Bookmark, UserX, UserCheck, ShieldX, Trash2 } from "lucide-react";
 import { useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
 import { UserCard } from "@workspace/api-client-react";
 
@@ -123,6 +123,22 @@ export default function Profile() {
   const block = useBlockUser();
   const unblock = useUnblockUser();
   const logout = useLogout();
+  const deletePost = useDeletePost();
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+
+  const handleDeletePost = (postId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm("Delete this shot? This cannot be undone.")) return;
+    setDeletingPostId(postId);
+    deletePost.mutate({ postId }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetUserPostsQueryKey(userId, { limit: 12 }) });
+        queryClient.invalidateQueries({ queryKey: getGetUserQueryKey(userId) });
+      },
+      onSettled: () => setDeletingPostId(null),
+    });
+  };
 
   const handleFollow = () => {
     if (!isAuthenticated) { setLocation("/login"); return; }
@@ -403,28 +419,56 @@ export default function Profile() {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-0.5">
-              {displayPosts!.map(post => (
-                <Link key={post.id} href={`/post/${post.id}`}>
-                  <div data-testid={`card-post-grid-${post.id}`} className="aspect-square bg-white/5 relative overflow-hidden">
-                    <img
-                      src={post.thumbnailUrl || "https://images.unsplash.com/photo-1535139262971-c51845709a48?q=80&w=400&auto=format&fit=crop"}
-                      alt={post.caption || "Golf shot"}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
-                    {post.club && (
-                      <div className="absolute top-1 left-1">
-                        <span className="px-1.5 py-0.5 rounded bg-primary/80 text-black text-xs font-bold">{post.club}</span>
-                      </div>
-                    )}
-                    {tab === "saved" && (
-                      <div className="absolute top-1 right-1">
-                        <Bookmark className="w-3 h-3 text-primary fill-current drop-shadow" />
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              ))}
+              {displayPosts!.map(post => {
+                const isBroken = post.videoUrl?.startsWith("blob:") || post.videoUrl?.startsWith("object:");
+                const thumbSrc = post.thumbnailUrl && !post.thumbnailUrl.startsWith("blob:")
+                  ? post.thumbnailUrl
+                  : "https://images.unsplash.com/photo-1535139262971-c51845709a48?q=80&w=400&auto=format&fit=crop";
+                const isDeleting = deletingPostId === post.id;
+                return (
+                  <Link key={post.id} href={`/post/${post.id}`}>
+                    <div
+                      data-testid={`card-post-grid-${post.id}`}
+                      className={`aspect-square bg-white/5 relative overflow-hidden ${isDeleting ? "opacity-40" : ""}`}
+                    >
+                      <img
+                        src={thumbSrc}
+                        alt={post.caption || "Golf shot"}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+                      {post.club && (
+                        <div className="absolute top-1 left-1">
+                          <span className="px-1.5 py-0.5 rounded bg-primary/80 text-black text-xs font-bold">{post.club}</span>
+                        </div>
+                      )}
+                      {/* Broken video indicator */}
+                      {isBroken && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <span className="text-white/50 text-xs font-semibold text-center px-2">Video unavailable</span>
+                        </div>
+                      )}
+                      {/* Delete button — only on own profile in shots tab */}
+                      {isOwnProfile && tab === "shots" && (
+                        <button
+                          data-testid={`button-delete-post-${post.id}`}
+                          onClick={(e) => handleDeletePost(post.id, e)}
+                          disabled={isDeleting}
+                          className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-black/70 border border-white/20 flex items-center justify-center opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity"
+                          title="Delete shot"
+                        >
+                          <Trash2 className="w-3 h-3 text-red-400" />
+                        </button>
+                      )}
+                      {tab === "saved" && (
+                        <div className="absolute top-1 right-1">
+                          <Bookmark className="w-3 h-3 text-primary fill-current drop-shadow" />
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

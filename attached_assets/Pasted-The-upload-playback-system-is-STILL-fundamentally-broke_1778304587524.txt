@@ -1,0 +1,189 @@
+The upload/playback system is STILL fundamentally broken.
+
+This is now clearly a backend media architecture problem, not a frontend UI problem.
+
+Current real-world behavior:
+
+* User uploads a REAL golf video from mobile
+* Post appears in feed
+* Desktop/browser refreshes correctly
+* BUT:
+
+  * fake/generated thumbnail appears
+  * actual video never streams
+  * video player remains unusable
+
+This proves:
+
+* the database record exists
+* the UI card renders
+* BUT the actual uploaded video file is NOT being retrieved/streamed correctly.
+
+STOP generating fake placeholder thumbnails.
+STOP masking the issue visually.
+
+The app MUST stream the REAL uploaded video file.
+
+---
+
+## CRITICAL ISSUE
+
+Right now PinView is behaving like:
+
+* thumbnail generator works
+  BUT
+* real media playback is broken.
+
+That means either:
+
+* uploaded video file never properly uploads
+* storage bucket permissions are broken
+* playback URL is invalid
+* Supabase storage path is wrong
+* frontend player src is wrong
+* unsupported codec issue
+* browser cannot access actual media object
+
+---
+
+1. INSPECT ACTUAL DATABASE VIDEO VALUES
+
+---
+
+Immediately inspect the REAL uploaded post row.
+
+Print/log:
+
+* video_url
+* storage_path
+* bucket name
+* thumbnail_url
+* MIME type
+
+I want to know EXACTLY what is being saved after upload.
+
+If video_url contains:
+
+* blob:
+* localhost:
+* object:
+* temporary references
+
+that is the bug.
+
+---
+
+2. VERIFY REAL FILE EXISTS IN SUPABASE STORAGE
+
+---
+
+Open Supabase Storage directly.
+
+Verify:
+
+* uploaded .mp4 file physically exists
+* correct file size
+* correct MIME type
+* correct bucket
+* upload completed fully
+
+Then:
+copy the DIRECT public/signed URL.
+
+Paste that URL directly into browser.
+
+The browser itself should play the video independently outside the app.
+
+If browser cannot play direct URL:
+the upload/storage pipeline is broken.
+
+---
+
+3. FIX THE ACTUAL VIDEO SRC
+
+---
+
+Inspect the rendered HTML video element.
+
+Verify: <video src="ACTUAL_SUPABASE_URL">
+
+NOT:
+
+* placeholder images
+* thumbnail URLs
+* blob URLs
+* empty strings
+* invalid storage references
+
+The frontend player MUST point to the REAL uploaded video file.
+
+---
+
+4. REMOVE FAKE THUMBNAIL FALLBACKS
+
+---
+
+Currently the app is showing:
+
+* generated golf placeholder imagery
+
+instead of acknowledging playback failure.
+
+This hides the real issue.
+
+Temporarily:
+
+* remove fake placeholder thumbnail logic
+* show real loading/error states instead
+
+---
+
+5. VERIFY VIDEO CODEC COMPATIBILITY
+
+---
+
+Ensure uploaded videos are browser compatible.
+
+Supported:
+
+* MP4
+* H.264 codec
+* AAC audio
+
+If iPhone uploads HEVC/H.265:
+many browsers may fail playback.
+
+If needed:
+automatically transcode uploads to H.264-compatible MP4 during upload process.
+
+---
+
+6. TEST THIS EXACT SCENARIO
+
+---
+
+DO NOT mark fixed until this EXACT workflow succeeds:
+
+1. Upload REAL video from iPhone
+2. Upload completes
+3. Open same account on desktop browser
+4. Refresh feed
+5. REAL uploaded video streams and plays
+6. Video controls function properly
+
+---
+
+7. IMPORTANT
+
+---
+
+DO NOT:
+
+* redesign UI
+* add features
+* work on discovery
+* work on comments
+* generate fake visuals
+
+The ONLY priority is:
+making REAL uploaded golf videos reliably stream cross-device like TikTok/Reels.

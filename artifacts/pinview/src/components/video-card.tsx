@@ -94,7 +94,18 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
   };
 
   const fallbackImg = "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=600&h=900&auto=format&fit=crop";
+
+  // Blob/object URLs are device-local browser memory references — they expire
+  // immediately when the tab closes and are inaccessible from any other device.
+  // Treat them as broken immediately so we don't show a misleading loading state.
+  const isBrokenUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false;
+    return url.startsWith("blob:") || url.startsWith("object:");
+  };
+
+  const brokenVideo = isBrokenUrl(post.videoUrl);
   const [videoError, setVideoError] = useState(false);
+  const showVideo = !!post.videoUrl && !brokenVideo && !videoError;
 
   return (
     <div
@@ -102,10 +113,10 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
       onClick={handleTap}
     >
       {/* Media */}
-      {post.videoUrl && !videoError ? (
+      {showVideo ? (
         <video
           key={post.videoUrl}
-          src={post.videoUrl}
+          src={post.videoUrl!}
           poster={post.thumbnailUrl || fallbackImg}
           className="w-full h-full object-cover"
           autoPlay
@@ -116,12 +127,23 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
           onError={() => setVideoError(true)}
         />
       ) : (
-        <img
-          src={post.thumbnailUrl || fallbackImg}
-          alt={post.caption || "Golf shot"}
-          className="w-full h-full object-cover"
-          draggable={false}
-        />
+        <>
+          <img
+            src={post.thumbnailUrl && !isBrokenUrl(post.thumbnailUrl) ? post.thumbnailUrl : fallbackImg}
+            alt={post.caption || "Golf shot"}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+          {/* Show a clear indicator when the video itself is broken — not a silent fallback */}
+          {(brokenVideo || videoError) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10 pointer-events-none">
+              <div className="px-4 py-2.5 rounded-xl bg-black/70 border border-white/10 text-center">
+                <p className="text-white/70 text-sm font-semibold">Video unavailable</p>
+                <p className="text-white/30 text-xs mt-0.5">Please re-upload this shot</p>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Cinematic gradient — top fade for logo, bottom fade for text */}
