@@ -106,6 +106,23 @@ export class ObjectStorageService {
     return new Response(webStream, { headers });
   }
 
+  /**
+   * Generate a short-lived signed GET URL for serving an object directly from GCS.
+   * GCS handles range requests, partial content (206), and seeks natively.
+   * Redirect clients here instead of streaming through Express.
+   */
+  async getObjectEntitySignedGetURL(objectPath: string, ttlSec = 900): Promise<string> {
+    // getObjectEntityFile validates existence and returns the GCS File handle.
+    // Use its .bucket.name and .name directly — no need to re-parse the path.
+    const objectFile = await this.getObjectEntityFile(objectPath);
+    return signObjectURL({
+      bucketName: objectFile.bucket.name,
+      objectName: objectFile.name,
+      method: "GET",
+      ttlSec,
+    });
+  }
+
   async getObjectEntityUploadURL(): Promise<string> {
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {

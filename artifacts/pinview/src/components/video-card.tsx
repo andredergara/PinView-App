@@ -94,6 +94,7 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
   };
 
   const fallbackImg = "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=600&h=900&auto=format&fit=crop";
+  const [videoError, setVideoError] = useState(false);
 
   return (
     <div
@@ -101,14 +102,18 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
       onClick={handleTap}
     >
       {/* Media */}
-      {post.videoUrl ? (
+      {post.videoUrl && !videoError ? (
         <video
+          key={post.videoUrl}
           src={post.videoUrl}
+          poster={post.thumbnailUrl || fallbackImg}
           className="w-full h-full object-cover"
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
+          onError={() => setVideoError(true)}
         />
       ) : (
         <img

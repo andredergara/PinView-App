@@ -1,0 +1,187 @@
+STOP making cosmetic changes.
+
+The core video system is fundamentally broken.
+
+Current issue:
+A real user uploads a golf video from mobile, but when viewing that same post on another device/browser, the video is only a black screen and does not play.
+
+This is NOT a UI issue.
+This is NOT a feed issue.
+
+This is a broken media upload/playback architecture issue.
+
+FULLY DEBUG the ACTUAL video pipeline end-to-end.
+
+---
+
+## CRITICAL ISSUE
+
+A user uploads a real video successfully.
+
+The post appears in the feed.
+
+BUT:
+
+* the video is black
+* playback fails
+* the video cannot stream cross-device
+
+This completely breaks the platform.
+
+PinView is a VIDEO platform.
+Nothing else matters until videos reliably work.
+
+---
+
+1. FULLY TRACE THE VIDEO PIPELINE
+
+---
+
+Debug the ENTIRE flow:
+
+UPLOAD →
+STORAGE →
+DATABASE →
+URL →
+PLAYER →
+PLAYBACK
+
+Log every step.
+
+Verify:
+
+* uploaded file exists
+* uploaded file size
+* uploaded MIME type
+* Supabase storage path
+* public/signed URL generation
+* video URL accessibility
+* video player source
+* browser playback compatibility
+
+---
+
+2. VERIFY ACTUAL VIDEO FILE EXISTS
+
+---
+
+Immediately verify:
+
+* the uploaded file truly exists inside Supabase Storage
+* the uploaded object is not corrupted
+* the upload is completing successfully
+* the file size is valid
+
+Check storage bucket directly.
+
+---
+
+3. FIX CROSS-DEVICE PLAYBACK
+
+---
+
+Videos MUST work across:
+
+* mobile
+* desktop
+* Chrome
+* Safari
+* different accounts/devices
+
+Right now uploads appear tied to the original device/session.
+
+That is unacceptable.
+
+---
+
+4. FIX VIDEO URL HANDLING
+
+---
+
+Most likely causes:
+
+* blob/local device URLs being saved
+* invalid signed URLs
+* incorrect bucket permissions
+* temporary local references
+* broken Supabase storage mapping
+
+The database should ONLY store:
+
+* persistent cloud video URLs
+  OR
+* permanent storage paths
+
+NEVER:
+blob:
+local:
+temporary browser references
+
+---
+
+5. FIX VIDEO PLAYER
+
+---
+
+The video player should:
+
+* load actual remote video URLs
+* show video frames immediately
+* support autoplay
+* support mobile playback
+* display controls correctly
+
+Right now the player renders but no actual media loads.
+
+---
+
+6. ADD REAL DEBUGGING
+
+---
+
+DO NOT claim this is fixed without verifying actual playback.
+
+Add logs for:
+
+* uploaded file path
+* retrieved playback URL
+* Supabase response
+* player source URL
+* browser media errors
+* failed network requests
+
+Inspect:
+
+* console errors
+* network tab
+* media loading failures
+
+---
+
+7. TEST REAL SCENARIO
+
+---
+
+Actually verify this exact workflow:
+
+1. Upload video from phone
+2. Open same account on desktop
+3. Open feed
+4. Video successfully streams and plays
+
+DO NOT mark complete unless this exact scenario works.
+
+---
+
+8. IMPORTANT
+
+---
+
+DO NOT redesign the app.
+DO NOT touch branding.
+DO NOT work on discovery/search/UI polish right now.
+
+The ONLY priority is:
+making uploaded videos reliably work across devices like a REAL social video platform.
+
+PinView cannot function until this is solved completely.
