@@ -364,6 +364,54 @@ export const GetPostResponse = zod.object({
 });
 
 /**
+ * @summary Edit a post
+ */
+export const UpdatePostParams = zod.object({
+  postId: zod.coerce.string(),
+});
+
+export const UpdatePostBody = zod.object({
+  caption: zod.string().nullish(),
+  course: zod.string().nullish(),
+  holeNumber: zod.number().nullish(),
+  club: zod.string().nullish(),
+  distance: zod.number().nullish(),
+  shotShape: zod.enum(["Straight", "Draw", "Fade", "Hook", "Slice"]).nullish(),
+  shotType: zod.string().nullish(),
+  tags: zod.array(zod.string()).optional(),
+});
+
+export const UpdatePostResponse = zod.object({
+  id: zod.string(),
+  author: zod.object({
+    id: zod.string(),
+    username: zod.string(),
+    displayName: zod.string(),
+    avatarUrl: zod.string().optional(),
+    handicap: zod.number().nullish(),
+    homeCourse: zod.string().nullish(),
+    followersCount: zod.number(),
+    isFollowing: zod.boolean(),
+  }),
+  caption: zod.string().nullish(),
+  videoUrl: zod.string().nullish(),
+  thumbnailUrl: zod.string().nullish(),
+  course: zod.string().nullish(),
+  holeNumber: zod.number().nullish(),
+  club: zod.string().nullish(),
+  distance: zod.number().nullish(),
+  shotShape: zod.enum(["Straight", "Draw", "Fade", "Hook", "Slice"]).nullish(),
+  shotType: zod.string().nullish(),
+  tags: zod.array(zod.string()),
+  likesCount: zod.number(),
+  commentsCount: zod.number(),
+  savesCount: zod.number(),
+  isLiked: zod.boolean(),
+  isSaved: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
  * @summary Delete a post
  */
 export const DeletePostParams = zod.object({

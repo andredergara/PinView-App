@@ -1,23 +1,45 @@
 import { Link, useLocation } from "wouter";
-import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
-import { Post, useLikePost, useUnlikePost, useSavePost, useUnsavePost } from "@workspace/api-client-react";
+import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Post, useLikePost, useUnlikePost, useSavePost, useUnsavePost, useDeletePost, getGetFeedQueryKey } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { EditPostModal } from "@/components/edit-post-modal";
 
 interface VideoCardProps {
   post: Post;
   onOpenComments: () => void;
 }
 
-export function VideoCard({ post, onOpenComments }: VideoCardProps) {
+export function VideoCard({ post: initialPost, onOpenComments }: VideoCardProps) {
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const likePost = useLikePost();
   const unlikePost = useUnlikePost();
   const savePost = useSavePost();
   const unsavePost = useUnsavePost();
+  const deletePost = useDeletePost();
+
+  const [post, setPost] = useState(initialPost);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const isOwnPost = !!currentUser && currentUser.id === post.author.id;
+
+  useEffect(() => { setPost(initialPost); }, [initialPost.id]);
+
+  const handleDeletePost = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    if (!window.confirm("Delete this shot? This cannot be undone.")) return;
+    deletePost.mutate({ postId: post.id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
+      },
+    });
+  };
 
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
@@ -240,6 +262,45 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
           </div>
           <span className="text-white text-xs font-semibold drop-shadow">Share</span>
         </button>
+
+        {/* "..." menu — own posts only */}
+        {isOwnPost && (
+          <div className="relative">
+            <button
+              data-testid={`button-post-menu-${post.id}`}
+              onClick={e => { e.stopPropagation(); setShowMenu(v => !v); }}
+              className="flex flex-col items-center gap-1"
+            >
+              <div className="p-2.5 rounded-full backdrop-blur-md" style={{ background: "rgba(0,0,0,0.35)" }}>
+                <MoreVertical className="w-7 h-7 text-white" />
+              </div>
+            </button>
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={e => { e.stopPropagation(); setShowMenu(false); }} />
+                <div className="absolute right-full mr-2 bottom-0 z-40 w-40 rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl overflow-hidden">
+                  <button
+                    data-testid={`button-edit-post-${post.id}`}
+                    onClick={e => { e.stopPropagation(); setShowMenu(false); setShowEditModal(true); }}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4 text-white/50" />
+                    Edit shot
+                  </button>
+                  <div className="h-px bg-white/5" />
+                  <button
+                    data-testid={`button-delete-post-feed-${post.id}`}
+                    onClick={handleDeletePost}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete shot
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom info */}
@@ -285,6 +346,19 @@ export function VideoCard({ post, onOpenComments }: VideoCardProps) {
           )}
         </div>
       </div>
+
+      {/* Edit modal for own posts */}
+      {isOwnPost && showEditModal && (
+        <EditPostModal
+          post={post}
+          open={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={(updated) => {
+            setPost(updated);
+            queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
+          }}
+        />
+      )}
     </div>
   );
 }

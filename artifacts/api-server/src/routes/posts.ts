@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, postsTable, likesTable, savesTable, commentsTable, notificationsTable, usersTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
-import { CreatePostBody, CreateCommentBody } from "@workspace/api-zod";
+import { CreatePostBody, CreateCommentBody, UpdatePostBody } from "@workspace/api-zod";
 import { enrichPost } from "./postHelpers";
 import { buildUserCard } from "./users";
 
@@ -35,6 +35,43 @@ router.get("/posts/:postId", async (req, res): Promise<void> => {
     return;
   }
   const enriched = await enrichPost(post, currentUserId);
+  res.json(enriched);
+});
+
+router.patch("/posts/:postId", async (req, res): Promise<void> => {
+  const { postId } = req.params as { postId: string };
+  const currentUserId = req.session?.userId;
+  if (!currentUserId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const [post] = await db.select().from(postsTable).where(eq(postsTable.id, postId));
+  if (!post) {
+    res.status(404).json({ error: "Post not found" });
+    return;
+  }
+  if (post.authorId !== currentUserId) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  const parsed = UpdatePostBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const updates: Record<string, unknown> = {};
+  const d = parsed.data;
+  if ("caption" in d) updates.caption = d.caption;
+  if ("course" in d) updates.course = d.course;
+  if ("holeNumber" in d) updates.holeNumber = d.holeNumber;
+  if ("club" in d) updates.club = d.club;
+  if ("distance" in d) updates.distance = d.distance;
+  if ("shotShape" in d) updates.shotShape = d.shotShape;
+  if ("shotType" in d) updates.shotType = d.shotType;
+  if ("tags" in d) updates.tags = d.tags;
+  await db.update(postsTable).set(updates).where(eq(postsTable.id, postId));
+  const [updated] = await db.select().from(postsTable).where(eq(postsTable.id, postId));
+  const enriched = await enrichPost(updated, currentUserId);
   res.json(enriched);
 });
 

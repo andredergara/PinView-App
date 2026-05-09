@@ -6,8 +6,9 @@ import {
   useGetUser, useGetUserPosts, useGetUserStats, useGetUserSaved, useGetUserFollowers, useGetUserFollowing,
   useFollowUser, useUnfollowUser, useBlockUser, useUnblockUser, useDeletePost,
   getGetUserQueryKey, getGetUserPostsQueryKey, getGetUserStatsQueryKey, getGetUserSavedQueryKey,
-  getGetUserFollowersQueryKey, getGetUserFollowingQueryKey,
+  getGetUserFollowersQueryKey, getGetUserFollowingQueryKey, Post,
 } from "@workspace/api-client-react";
+import { EditPostModal } from "@/components/edit-post-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAuth } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Settings, MapPin, Target, Grid3X3, Bookmark, UserX, UserCheck, ShieldX, Trash2 } from "lucide-react";
+import { Settings, MapPin, Target, Grid3X3, Bookmark, UserX, UserCheck, ShieldX, Trash2, Pencil } from "lucide-react";
 import { useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
 import { UserCard } from "@workspace/api-client-react";
 
@@ -125,6 +126,7 @@ export default function Profile() {
   const logout = useLogout();
   const deletePost = useDeletePost();
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   const handleDeletePost = (postId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -448,17 +450,27 @@ export default function Profile() {
                           <span className="text-white/50 text-xs font-semibold text-center px-2">Video unavailable</span>
                         </div>
                       )}
-                      {/* Delete button — only on own profile in shots tab */}
+                      {/* Edit + Delete buttons — only on own profile in shots tab */}
                       {isOwnProfile && tab === "shots" && (
-                        <button
-                          data-testid={`button-delete-post-${post.id}`}
-                          onClick={(e) => handleDeletePost(post.id, e)}
-                          disabled={isDeleting}
-                          className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-black/70 border border-white/20 flex items-center justify-center opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity"
-                          title="Delete shot"
-                        >
-                          <Trash2 className="w-3 h-3 text-red-400" />
-                        </button>
+                        <div className="absolute bottom-1 right-1 flex gap-1 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <button
+                            data-testid={`button-edit-post-${post.id}`}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingPost(post); }}
+                            className="w-6 h-6 rounded-full bg-black/70 border border-white/20 flex items-center justify-center"
+                            title="Edit shot"
+                          >
+                            <Pencil className="w-3 h-3 text-white/60" />
+                          </button>
+                          <button
+                            data-testid={`button-delete-post-${post.id}`}
+                            onClick={(e) => handleDeletePost(post.id, e)}
+                            disabled={isDeleting}
+                            className="w-6 h-6 rounded-full bg-black/70 border border-white/20 flex items-center justify-center"
+                            title="Delete shot"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-400" />
+                          </button>
+                        </div>
                       )}
                       {tab === "saved" && (
                         <div className="absolute top-1 right-1">
@@ -473,6 +485,19 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Edit post modal */}
+      {editingPost && (
+        <EditPostModal
+          post={editingPost}
+          open={!!editingPost}
+          onClose={() => setEditingPost(null)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: getGetUserPostsQueryKey(userId, { limit: 12 }) });
+            setEditingPost(null);
+          }}
+        />
+      )}
     </Layout>
   );
 }

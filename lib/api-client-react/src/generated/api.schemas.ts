@@ -207,6 +207,29 @@ export interface CreatePostBody {
   tags?: string[];
 }
 
+export type EditPostBodyShotShape =
+  | (typeof EditPostBodyShotShape)[keyof typeof EditPostBodyShotShape]
+  | null;
+
+export const EditPostBodyShotShape = {
+  Straight: "Straight",
+  Draw: "Draw",
+  Fade: "Fade",
+  Hook: "Hook",
+  Slice: "Slice",
+} as const;
+
+export interface EditPostBody {
+  caption?: string | null;
+  course?: string | null;
+  holeNumber?: number | null;
+  club?: string | null;
+  distance?: number | null;
+  shotShape?: EditPostBodyShotShape;
+  shotType?: string | null;
+  tags?: string[];
+}
+
 export interface CreateCommentBody {
   text: string;
 }

@@ -1,14 +1,15 @@
 import { useParams, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
-import { useGetPost, useGetPostComments, useCreateComment, useLikePost, useUnlikePost, useSavePost, useUnsavePost, useDeleteComment, getGetPostQueryKey, getGetPostCommentsQueryKey, Comment } from "@workspace/api-client-react";
+import { useGetPost, useGetPostComments, useCreateComment, useLikePost, useUnlikePost, useSavePost, useUnsavePost, useDeleteComment, useDeletePost, getGetPostQueryKey, getGetPostCommentsQueryKey, Comment, Post } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
-import { Heart, MessageCircle, Bookmark, ChevronLeft, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, ChevronLeft, Send, Trash2, MoreVertical, Pencil } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { EditPostModal } from "@/components/edit-post-modal";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -45,6 +46,10 @@ export default function PostPage() {
   const unsavePost = useUnsavePost();
   const createComment = useCreateComment();
   const deleteComment = useDeleteComment();
+  const deletePost = useDeletePost();
+
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Optimistic like state
   const [isLiked, setIsLiked] = useState(false);
@@ -144,6 +149,22 @@ export default function PostPage() {
     );
   };
 
+  const isOwnPost = !!currentUser && !!post && currentUser.id === post.author.id;
+
+  const handleDeletePost = () => {
+    if (!window.confirm("Delete this shot? This cannot be undone.")) return;
+    deletePost.mutate({ postId: params.postId }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["getFeed"] });
+        setLocation("/");
+      },
+    });
+  };
+
+  const handleEditSuccess = (updated: Post) => {
+    queryClient.setQueryData(getGetPostQueryKey(params.postId), updated);
+  };
+
   const handleDeleteComment = (commentId: string) => {
     // Optimistic remove
     queryClient.setQueryData<Comment[]>(
@@ -199,7 +220,42 @@ export default function PostPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-white font-bold">Shot</span>
+          <span className="text-white font-bold flex-1">Shot</span>
+          {isOwnPost && (
+            <div className="relative">
+              <button
+                data-testid="button-post-menu"
+                onClick={() => setShowMenu(v => !v)}
+                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-40 w-44 rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl overflow-hidden">
+                    <button
+                      data-testid="button-edit-post"
+                      onClick={() => { setShowMenu(false); setShowEditModal(true); }}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4 text-white/50" />
+                      Edit shot
+                    </button>
+                    <div className="h-px bg-white/5" />
+                    <button
+                      data-testid="button-delete-post"
+                      onClick={() => { setShowMenu(false); handleDeletePost(); }}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete shot
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Media — portrait crop like Reels */}
@@ -376,6 +432,16 @@ export default function PostPage() {
           </div>
         )}
       </div>
+
+      {/* Edit modal — only rendered when user is the author */}
+      {isOwnPost && showEditModal && (
+        <EditPostModal
+          post={post}
+          open={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </Layout>
   );
 }
