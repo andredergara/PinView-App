@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, postsTable, followsTable } from "@workspace/db";
-import { eq, sql, inArray } from "drizzle-orm";
+import { db, postsTable, followsTable, likesTable } from "@workspace/db";
+import { eq, sql, inArray, count, desc } from "drizzle-orm";
 import { enrichPost } from "./postHelpers";
 
 const router: IRouter = Router();
@@ -48,13 +48,18 @@ router.get("/feed", async (req, res): Promise<void> => {
 
 router.get("/feed/trending", async (req, res): Promise<void> => {
   const currentUserId = req.session?.userId;
-  const limit = parseInt(String(req.query.limit ?? "20"), 10);
-  const posts = await db
-    .select()
+  const limit = Math.min(parseInt(String(req.query.limit ?? "10"), 10), 20);
+
+  // Join likes to get a real likes count, order by popularity then recency
+  const rows = await db
+    .select({ post: postsTable, likesCount: count(likesTable.postId) })
     .from(postsTable)
-    .orderBy(sql`created_at DESC`)
+    .leftJoin(likesTable, eq(likesTable.postId, postsTable.id))
+    .groupBy(postsTable.id)
+    .orderBy(desc(count(likesTable.postId)), desc(postsTable.createdAt))
     .limit(limit);
-  const enriched = await Promise.all(posts.map(p => enrichPost(p, currentUserId)));
+
+  const enriched = await Promise.all(rows.map(r => enrichPost(r.post, currentUserId)));
   res.json(enriched);
 });
 

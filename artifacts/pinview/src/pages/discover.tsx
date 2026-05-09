@@ -164,8 +164,8 @@ export default function Discover() {
     query: { queryKey: getGetTrendingCoursesQueryKey() },
   });
   const { data: trending } = useGetTrendingPosts(
-    { limit: 6 },
-    { query: { queryKey: getGetTrendingPostsQueryKey({ limit: 6 }) } }
+    { limit: 10 },
+    { query: { queryKey: getGetTrendingPostsQueryKey({ limit: 10 }) } }
   );
 
   return (
@@ -264,24 +264,62 @@ export default function Discover() {
                     <TrendingUp className="w-4 h-4 text-primary" />
                     <h2 className="text-sm font-black text-white uppercase tracking-wider">Trending Shots</h2>
                   </div>
-                  <div className="grid grid-cols-3 gap-1">
-                    {trending!.slice(0, 6).map(post => (
-                      <Link key={post.id} href={`/post/${post.id}`}>
-                        <div data-testid={`card-post-${post.id}`}
-                          className="aspect-square bg-white/5 rounded-lg overflow-hidden relative"
-                        >
-                          <img
-                            src={post.thumbnailUrl || "https://images.unsplash.com/photo-1535139262971-c51845709a48?q=80&w=400&auto=format&fit=crop"}
-                            alt={post.caption || "Golf shot"}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1">
-                            <span className="text-white text-xs font-bold drop-shadow">{post.likesCount}</span>
+                  <div className="space-y-1.5">
+                    {trending!.slice(0, 10).map((post, idx) => {
+                      const rank = idx + 1;
+                      const isTop3 = rank <= 3;
+                      const rankColor = rank === 1
+                        ? "text-yellow-400"
+                        : rank === 2
+                        ? "text-slate-300"
+                        : rank === 3
+                        ? "text-amber-600"
+                        : "text-white/25";
+                      const thumb = post.thumbnailUrl || "https://images.unsplash.com/photo-1535139262971-c51845709a48?q=80&w=200&auto=format&fit=crop";
+                      const label = post.caption || [post.club, post.distance ? `${post.distance}yds` : null].filter(Boolean).join(" · ") || "Golf shot";
+                      return (
+                        <Link key={post.id} href={`/post/${post.id}`}>
+                          <div
+                            data-testid={`card-post-${post.id}`}
+                            className={`flex items-center gap-3 p-2.5 rounded-xl transition-all ${
+                              isTop3
+                                ? "bg-white/[0.05] border border-white/[0.08] hover:border-white/15"
+                                : "hover:bg-white/[0.03]"
+                            }`}
+                          >
+                            {/* Rank */}
+                            <span className={`w-7 text-center text-base font-black tabular-nums shrink-0 ${rankColor}`}>
+                              {rank}
+                            </span>
+
+                            {/* Thumbnail */}
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-white/5">
+                              <img
+                                src={thumb}
+                                alt={label}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm font-semibold leading-snug line-clamp-1">{label}</p>
+                              <p className="text-white/40 text-xs mt-0.5 truncate">
+                                @{post.author.username}
+                                {post.club && ` · ${post.club}`}
+                                {post.course && ` · ${post.course}`}
+                              </p>
+                            </div>
+
+                            {/* Like count */}
+                            <div className="shrink-0 flex items-center gap-1 text-white/30">
+                              <span className="text-xs font-bold tabular-nums">{post.likesCount}</span>
+                              <span className="text-[10px]">♥</span>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               )}
