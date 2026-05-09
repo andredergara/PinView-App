@@ -1,0 +1,170 @@
+STOP working on UI polish.
+
+The issue is NOT visual.
+
+The ACTUAL uploaded video files are NOT being stored correctly for cross-device playback.
+
+Current real-world failure:
+
+* User uploads video from phone
+* Post appears in feed
+* Same account opened on desktop/browser
+* Video is only a black screen and does not play
+
+This strongly suggests the app is storing:
+
+* blob URLs
+* local object URLs
+* temporary device references
+
+instead of real cloud-hosted media files.
+
+This MUST be fixed immediately.
+
+---
+
+## CRITICAL REQUIREMENT
+
+PinView is a VIDEO platform.
+
+Uploaded videos MUST behave like:
+
+* TikTok
+* Instagram Reels
+* YouTube Shorts
+
+Meaning:
+
+* upload once
+* playable everywhere
+* across all devices
+* across all sessions
+
+---
+
+1. VERIFY WHAT IS ACTUALLY STORED IN DATABASE
+
+---
+
+Immediately inspect the actual stored video URL/path for uploaded posts.
+
+Log EXACTLY what is being saved.
+
+If the database contains:
+
+* blob:
+* localhost:
+* object:
+* temporary URLs
+* device-specific references
+
+THAT is the bug.
+
+The database should ONLY store:
+
+* permanent Supabase Storage paths
+  OR
+* permanent cloud-accessible URLs
+
+---
+
+2. FIX VIDEO UPLOAD FLOW
+
+---
+
+Correct upload architecture should be:
+
+STEP 1:
+Upload actual file to Supabase Storage bucket
+
+STEP 2:
+Receive permanent cloud storage path/URL
+
+STEP 3:
+Save ONLY that permanent path into database
+
+STEP 4:
+Frontend video player loads ONLY the cloud URL
+
+---
+
+3. VERIFY SUPABASE STORAGE BUCKET
+
+---
+
+Check:
+
+* uploaded video physically exists in storage bucket
+* correct MIME type
+* proper file size
+* proper permissions
+* public/signed access works
+
+Try opening uploaded file URL directly in browser.
+
+The video itself must stream independently outside the app.
+
+---
+
+4. FIX VIDEO PLAYER SOURCE
+
+---
+
+The frontend video component must:
+
+* load remote Supabase video URL
+* NOT use temporary upload references
+* NOT rely on device-local state
+
+Inspect actual video src attribute.
+
+---
+
+5. ADD REAL DEBUG LOGGING
+
+---
+
+Log:
+
+* uploaded file URL
+* stored database value
+* retrieved playback URL
+* Supabase storage response
+* browser video playback errors
+
+Inspect:
+
+* browser console
+* network tab
+* media requests
+
+---
+
+6. TEST THIS EXACT WORKFLOW
+
+---
+
+DO NOT claim fixed until THIS exact scenario succeeds:
+
+1. Upload video from iPhone
+2. Sign into same account on desktop
+3. Open feed
+4. Video streams correctly
+
+This exact workflow MUST work fully.
+
+---
+
+7. IMPORTANT
+
+---
+
+DO NOT:
+
+* redesign UI
+* change branding
+* work on search/discover
+* add features
+
+The ONLY priority is:
+fixing REAL cloud-based cross-device video playback.
