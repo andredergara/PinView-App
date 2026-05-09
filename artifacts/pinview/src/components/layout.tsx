@@ -48,14 +48,14 @@ export function BottomNav() {
   );
 }
 
-export function Layout({ children, hideNav = false }: { children: React.ReactNode; hideNav?: boolean }) {
+export function Layout({ children, hideNav = false, noScroll = false }: { children: React.ReactNode; hideNav?: boolean; noScroll?: boolean }) {
   return (
     <div className="min-h-[100dvh] w-full bg-black flex justify-center text-foreground dark">
       <div
         className="w-full max-w-[430px] min-h-[100dvh] relative flex flex-col overflow-hidden"
         style={{ background: "#0d0d0d", borderLeft: "1px solid rgba(255,255,255,0.04)", borderRight: "1px solid rgba(255,255,255,0.04)" }}
       >
-        <main className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+        <main className={`flex-1 flex flex-col ${noScroll ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"}`}>
           {children}
         </main>
         {!hideNav && <BottomNav />}

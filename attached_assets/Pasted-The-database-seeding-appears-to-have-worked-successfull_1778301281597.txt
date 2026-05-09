@@ -1,0 +1,151 @@
+The database seeding appears to have worked successfully, but the frontend is STILL not properly rendering the real seeded content throughout the app.
+
+Current issue:
+
+* the app still feels empty/inconsistent
+* seeded creators/posts are not displaying correctly
+* feed may still be using mock/local/demo arrays
+* Discover page still feels disconnected
+* real seeded engagement is not fully visible
+
+The backend data now exists.
+Now FULLY CONNECT the frontend UI to the REAL Supabase data.
+
+DO NOT reseed again.
+DO NOT generate more fake content.
+ONLY connect/render the existing seeded ecosystem correctly.
+
+---
+
+1. HOME FEED MUST PULL REAL POSTS
+
+---
+
+The Home feed should query REAL seeded posts directly from Supabase.
+
+Requirements:
+
+* render seeded golf videos
+* render real captions
+* render creator usernames
+* render like counts
+* render comments
+* render saves
+* render timestamps
+
+Remove ALL fallback/mock/demo feed arrays.
+
+The feed should ONLY use live Supabase data now.
+
+---
+
+2. DISCOVER PAGE MUST USE REAL USERS
+
+---
+
+The Discover page should:
+
+* query seeded creator accounts
+* show real follower counts
+* show profile pictures
+* show real usernames
+* support profile navigation
+
+NO placeholder discover cards anymore.
+
+---
+
+3. PROFILE PAGES MUST SHOW REAL CONTENT
+
+---
+
+Creator profiles should:
+
+* show uploaded seeded posts
+* show real follower/following counts
+* show post grids properly
+* show profile bios/home course/handicap
+
+---
+
+4. VERIFY VIDEO RENDERING
+
+---
+
+Many seeded posts may exist in database but not visually render.
+
+Debug:
+
+* video URLs
+* video loading
+* video playback
+* media mapping
+
+Ensure:
+
+* videos autoplay correctly
+* videos fill mobile screen
+* no broken/empty cards
+
+---
+
+5. REMOVE ALL MOCK DATA SOURCES
+
+---
+
+Search entire app for:
+
+* hardcoded arrays
+* mock posts
+* placeholder creators
+* fake discover users
+* local demo feeds
+
+Replace ALL of them with real Supabase queries.
+
+---
+
+6. DEBUG DATABASE QUERIES
+
+---
+
+Add console logs for:
+
+* fetched posts
+* fetched creators
+* fetched comments
+* fetched likes
+* Supabase query responses
+
+Verify the frontend is ACTUALLY receiving the seeded data.
+
+---
+
+7. ENSURE FEED FEELS ALIVE
+
+---
+
+The app should now immediately feel:
+
+* active
+* social
+* immersive
+* believable
+
+when opening the feed.
+
+The goal is:
+users should instantly think:
+“people are actually using this.”
+
+---
+
+8. IMPORTANT
+
+---
+
+DO NOT redesign the UI.
+DO NOT reseed more content.
+DO NOT touch branding.
+
+ONLY connect the frontend to the REAL seeded Supabase ecosystem already created.

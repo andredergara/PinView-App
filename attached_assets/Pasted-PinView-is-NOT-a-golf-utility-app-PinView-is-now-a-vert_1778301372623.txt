@@ -1,0 +1,274 @@
+PinView is NOT a golf utility app.
+
+PinView is now a vertical short-form social media platform for golf content.
+
+The product direction should now feel much closer to:
+
+* TikTok
+* Instagram Reels
+* YouTube Shorts
+
+BUT entirely centered around golf culture and golf videos.
+
+The current app foundation is getting there visually, but the overall experience still feels:
+
+* clunky
+* static
+* disconnected
+* not smooth enough
+* not immersive enough
+
+We are no longer building a concept app.
+We are building a REAL social content platform.
+
+DO NOT redesign the branding or aesthetic.
+The black/green PinView golf-tech identity is strong.
+
+Instead:
+focus ENTIRELY on making the app feel:
+
+* smooth
+* addictive
+* immersive
+* alive
+* social-media quality
+
+---
+
+## CORE PRODUCT PHILOSOPHY
+
+The FEED is the product.
+
+When users open PinView:
+they should immediately enter a full-screen vertical golf content experience.
+
+The app should emotionally feel like:
+“Tiktok for golf.”
+
+NOT:
+“a golf utility app.”
+
+---
+
+1. REBUILD THE HOME FEED EXPERIENCE
+
+---
+
+The Home feed should now behave like a REAL short-form video platform.
+
+Requirements:
+
+* full-screen vertical videos
+* one video per screen
+* smooth vertical swipe transitions
+* autoplay videos
+* preload next videos
+* immersive scrolling
+* smooth gesture handling
+* minimal loading interruptions
+
+The experience should feel:
+
+* fluid
+* responsive
+* premium
+* addictive
+
+similar to:
+
+* TikTok
+* Reels
+
+---
+
+2. PRIORITIZE VIDEO IMMERSION
+
+---
+
+Videos should dominate the screen.
+
+Fix:
+
+* awkward spacing
+* empty UI gaps
+* non-fullscreen layouts
+* static card feeling
+
+Videos should:
+
+* properly crop vertically
+* fill mobile displays
+* autoplay smoothly
+* loop seamlessly
+* support mute/unmute
+* maintain high quality rendering
+
+---
+
+3. POLISH SOCIAL INTERACTIONS
+
+---
+
+Likes, comments, follows, and saves should feel:
+
+* instant
+* animated
+* satisfying
+
+Requirements:
+
+* heart turns red instantly
+* subtle like animation
+* comments slide smoothly
+* follow button updates immediately
+* save interactions feel responsive
+
+NO delayed/clunky interactions.
+
+Everything should feel native-mobile quality.
+
+---
+
+4. IMPROVE COMMENT EXPERIENCE
+
+---
+
+Comments should resemble modern social platforms.
+
+Requirements:
+
+* smooth opening animation
+* bottom-sheet style comments
+* profile pictures
+* usernames
+* timestamps like:
+
+  * 5m
+  * 2h
+  * 1d
+* smooth posting
+* instant rendering
+
+Commenting should feel:
+
+* effortless
+* fast
+* polished
+
+---
+
+5. MAKE THE APP FEEL ALIVE
+
+---
+
+The platform should immediately feel active.
+
+Ensure:
+
+* seeded creators actually render
+* videos load correctly
+* discover page feels populated
+* engagement counts display correctly
+* profiles feel connected
+
+No fake empty feeling.
+
+---
+
+6. IMPROVE DISCOVER PAGE
+
+---
+
+The Discover page should feel like:
+
+* TikTok discover
+* creator discovery
+* trending golf content
+
+Requirements:
+
+* trending golfers
+* trending clips
+* search users
+* smooth profile navigation
+* responsive loading
+* polished cards
+
+Remove:
+
+* awkward layouts
+* broken follow logic
+* self-follow options
+
+---
+
+7. MOBILE-FIRST PERFORMANCE
+
+---
+
+This app should feel built for iPhone first.
+
+Optimize:
+
+* swipe responsiveness
+* touch interactions
+* animation smoothness
+* feed performance
+* video buffering
+* loading states
+
+Everything should feel:
+
+* native
+* fluid
+* modern
+
+---
+
+8. REMOVE “APP DEMO” FEELING
+
+---
+
+Right now parts of the app still feel:
+
+* placeholder
+* prototype-like
+* disconnected
+
+Eliminate:
+
+* mock behavior
+* broken transitions
+* delayed interactions
+* inconsistent rendering
+* dead UI sections
+
+The goal is:
+users should forget this is an early-stage app.
+
+---
+
+9. IMPORTANT
+
+---
+
+DO NOT redesign the branding.
+DO NOT change the PinView identity.
+
+Keep:
+
+* black/dark UI
+* green accents
+* premium golf-tech aesthetic
+* cinematic golf atmosphere
+
+ONLY improve:
+
+* smoothness
+* realism
+* immersion
+* responsiveness
+* social-media quality UX
+
+PinView should now begin feeling like:
+“A real golf content platform people could genuinely get addicted to.”

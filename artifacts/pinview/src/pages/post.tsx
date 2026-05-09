@@ -202,22 +202,27 @@ export default function PostPage() {
           <span className="text-white font-bold">Shot</span>
         </div>
 
-        {/* Media */}
-        <div className="w-full aspect-video bg-black relative overflow-hidden">
+        {/* Media — portrait crop like Reels */}
+        <div className="w-full bg-black relative overflow-hidden" style={{ aspectRatio: "4/5" }}>
           {post.videoUrl ? (
             <video
               src={post.videoUrl}
               className="w-full h-full object-cover"
               controls
               playsInline
+              autoPlay
+              muted
             />
           ) : (
             <img
-              src={post.thumbnailUrl || "https://images.unsplash.com/photo-1535139262971-c51845709a48?q=80&w=800&auto=format&fit=crop"}
+              src={post.thumbnailUrl || "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=600&h=750&auto=format&fit=crop"}
               alt={post.caption || "Golf shot"}
               className="w-full h-full object-cover"
             />
           )}
+          {/* Gradient overlay at bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+            style={{ background: "linear-gradient(to top, rgba(13,13,13,0.9) 0%, transparent 100%)" }} />
         </div>
 
         {/* Info */}
