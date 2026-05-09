@@ -13,7 +13,7 @@ import { Search, MapPin, TrendingUp, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { searchCourses, type GolfCourse } from "@/data/golf-courses";
+interface CourseSuggestion { name: string; location: string; }
 
 // FollowButton with:
 // - optimistic local state (no refetch flicker)
@@ -150,11 +150,65 @@ function CreatorRow({ user, currentUserId }: { user: UserCard; currentUserId: st
 export default function Discover() {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [courseSuggestions, setCourseSuggestions] = useState<CourseSuggestion[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { user: currentUser } = useAuth();
 
-  // Worldwide course suggestions (instant, client-side)
-  const courseSuggestions: GolfCourse[] = query.length >= 2 ? searchCourses(query, 8) : [];
+  // Live course autocomplete via Photon (OpenStreetMap-powered, worldwide)
+  useEffect(() => {
+    if (query.length < 2) {
+      setCourseSuggestions([]);
+      setSuggestionsLoading(false);
+      return;
+    }
+    setSuggestionsLoading(true);
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        // Append a "golf" hint when the user hasn't typed golf terms yet —
+        // this biases Photon's ranking toward golf venues over towns/roads.
+        const photonQ = /golf|country club|links|gc\b/i.test(query.trim())
+          ? query
+          : `${query} golf`;
+        const params = new URLSearchParams({ q: photonQ, limit: "30" });
+        const res = await fetch(`https://photon.komoot.io/api/?${params}`, {
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        const seen = new Set<string>();
+        const results: CourseSuggestion[] = [];
+        for (const f of data.features ?? []) {
+          const p = f.properties ?? {};
+          // Keep only golf-course-tagged features or names containing golf/country club/links
+          const isGolf =
+            p.osm_value === "golf_course" ||
+            /golf|country club|links/i.test(p.name ?? "");
+          if (!isGolf || !p.name) continue;
+          const key = p.name.toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const loc = [p.city || p.county, p.state, p.country]
+            .filter(Boolean)
+            .join(", ");
+          results.push({ name: p.name, location: loc });
+          if (results.length >= 8) break;
+        }
+        setCourseSuggestions(results);
+      } catch (e) {
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          setCourseSuggestions([]);
+        }
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    }, 380);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
 
   // Close suggestions when clicking outside the search container
   useEffect(() => {
@@ -218,34 +272,51 @@ export default function Discover() {
               </button>
             )}
 
-            {/* ── Worldwide course autocomplete dropdown ── */}
-            {showSuggestions && courseSuggestions.length > 0 && (
+            {/* ── Live course autocomplete dropdown ── */}
+            {showSuggestions && query.length >= 2 && (suggestionsLoading || courseSuggestions.length > 0) && (
               <div className="absolute top-full left-0 right-0 mt-1.5 rounded-xl border border-white/10 shadow-2xl z-50 overflow-hidden"
                 style={{ background: "rgba(18,18,18,0.98)", backdropFilter: "blur(16px)" }}
               >
                 <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-1.5 border-b border-white/[0.06]">
                   <MapPin className="w-3 h-3 text-primary/60" />
                   <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Course suggestions</span>
+                  {suggestionsLoading && (
+                    <div className="ml-auto w-3 h-3 rounded-full border border-white/20 border-t-primary/60 animate-spin" />
+                  )}
                 </div>
-                {courseSuggestions.map(course => (
-                  <button
-                    key={course.name}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.05] active:bg-white/[0.08] transition-colors text-left"
-                    onMouseDown={e => {
-                      e.preventDefault();
-                      setQuery(course.name);
-                      setShowSuggestions(false);
-                    }}
-                  >
-                    <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                      <MapPin className="w-3 h-3 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-white text-sm font-medium leading-snug truncate">{course.name}</p>
-                      <p className="text-white/35 text-[11px] truncate">{course.location}</p>
-                    </div>
-                  </button>
-                ))}
+                {suggestionsLoading && courseSuggestions.length === 0 ? (
+                  <div className="px-3 py-4 space-y-2.5">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-md bg-white/[0.04] shrink-0" />
+                        <div className="flex-1 space-y-1.5">
+                          <div className="h-3 rounded bg-white/[0.05] w-3/4" />
+                          <div className="h-2.5 rounded bg-white/[0.04] w-1/2" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  courseSuggestions.map(course => (
+                    <button
+                      key={course.name}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.05] active:bg-white/[0.08] transition-colors text-left"
+                      onMouseDown={e => {
+                        e.preventDefault();
+                        setQuery(course.name);
+                        setShowSuggestions(false);
+                      }}
+                    >
+                      <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                        <MapPin className="w-3 h-3 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white text-sm font-medium leading-snug truncate">{course.name}</p>
+                        <p className="text-white/35 text-[11px] truncate">{course.location}</p>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             )}
           </div>
