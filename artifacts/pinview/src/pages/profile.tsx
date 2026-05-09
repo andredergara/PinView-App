@@ -96,6 +96,7 @@ export default function Profile() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"shots" | "saved">("shots");
+
   const [listModal, setListModal] = useState<ListModal>(null);
 
   const userId = params.userId ?? currentUser?.id ?? "";
@@ -355,7 +356,7 @@ export default function Profile() {
               }`}
             >
               <Grid3X3 className="w-3.5 h-3.5" />
-              Shots
+              My Shots
             </button>
             <button
               onClick={() => setTab("saved")}

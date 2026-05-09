@@ -1,0 +1,208 @@
+PinView is now using REAL uploaded user content, and several important production-level issues need to be fixed immediately.
+
+Do NOT redesign the app.
+Do NOT change branding/colors/layout.
+
+ONLY improve:
+
+* video reliability
+* search functionality
+* naming polish
+* real-world usability
+
+---
+
+1. FIX BLACK SCREEN VIDEO PLAYBACK ISSUE
+
+---
+
+Current issue:
+Uploaded videos appear as a black screen on desktop/browser playback even though the upload technically exists.
+
+This is a critical media rendering/storage issue.
+
+FULLY DEBUG the upload + playback pipeline.
+
+Possible causes:
+
+* invalid video URL
+* unsupported codec
+* incorrect MIME type
+* Supabase storage permissions
+* video processing issue
+* broken video player rendering
+* mobile-only blob URLs
+* improper transcoding
+* CORS issue
+
+Requirements:
+
+* videos must play correctly on:
+
+  * desktop browsers
+  * iPhone
+  * Android
+* support cross-device playback
+* support autoplay
+* support proper video thumbnails
+* support smooth loading
+
+---
+
+2. VERIFY VIDEO STORAGE ARCHITECTURE
+
+---
+
+Ensure uploaded videos are:
+
+* stored properly in Supabase Storage
+* publicly accessible or correctly signed
+* attached to database records properly
+* NOT stored as temporary local device blobs
+
+The uploaded content should behave like:
+
+* TikTok
+* Instagram Reels
+* YouTube Shorts
+
+Videos should follow the user account, not the device.
+
+---
+
+3. GENERATE VIDEO THUMBNAILS
+
+---
+
+Currently empty black screens make the app feel broken.
+
+Generate real thumbnails/previews for uploaded videos.
+
+Requirements:
+
+* auto-generate thumbnail from video frame
+* show preview before playback
+* improve feed immersion
+
+---
+
+4. RENAME “SHOTS” TAB
+
+---
+
+Rename:
+“Shots”
+
+to:
+“My Shots”
+
+throughout the profile/account experience.
+
+This feels cleaner and more personal.
+
+---
+
+5. ADD REAL GOLF COURSE SEARCH SYSTEM
+
+---
+
+Create a dedicated course discovery/search feature.
+
+Users should be able to:
+
+* search golf courses worldwide
+* open course pages
+* view shots posted from those courses
+
+This is a MAJOR platform feature.
+
+---
+
+6. WORLDWIDE COURSE AUTOCOMPLETE
+
+---
+
+As users type course names:
+show real-time autocomplete suggestions.
+
+Example:
+Typing:
+“Peb…”
+
+Should instantly suggest:
+
+* Pebble Beach Golf Links
+* Pebble Brook GC
+* etc.
+
+Requirements:
+
+* intelligent letter matching
+* worldwide golf course database
+* smooth search UX
+* fast results
+* mobile optimized
+
+The experience should feel similar to:
+
+* Google Maps
+* TikTok search
+* Instagram location tagging
+
+---
+
+7. COURSE PAGES
+
+---
+
+Each course page should display:
+
+* course name
+* location
+* posted shots/videos
+* trending shots
+* golfers who posted there
+
+This should help create:
+
+* golf communities around courses
+* searchable golf content ecosystems
+
+---
+
+8. IMPROVE FEED REALISM
+
+---
+
+Now that real content exists:
+the app must prioritize:
+
+* reliable playback
+* smooth rendering
+* polished transitions
+* immersive viewing
+
+The feed should NEVER feel broken or unstable.
+
+---
+
+9. IMPORTANT
+
+---
+
+DO NOT redesign the platform.
+DO NOT change the PinView branding.
+
+Keep:
+
+* premium golf-tech aesthetic
+* dark UI
+* cinematic feel
+
+ONLY improve:
+
+* functionality
+* realism
+* scalability
+* smoothness
+* content discovery

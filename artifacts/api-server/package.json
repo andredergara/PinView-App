@@ -20,7 +20,9 @@
     "express": "^5",
     "express-session": "^1.19.0",
     "pino": "^9",
-    "pino-http": "^10"
+    "pino-http": "^10",
+    "@google-cloud/storage": "^7",
+    "google-auth-library": "^9"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
