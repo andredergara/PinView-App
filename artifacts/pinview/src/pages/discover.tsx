@@ -272,60 +272,34 @@ export default function Discover() {
                     </div>
                   )}
 
-                  {/* DB courses that have shots + worldwide suggestions merged */}
-                  {(() => {
-                    const dbCourses = searchResults?.courses ?? [];
-                    const dbNames = new Set(dbCourses.map(c => c.name.toLowerCase()));
-                    // Worldwide matches not already in DB results
-                    const worldwideExtra = courseSuggestions.filter(
-                      c => !dbNames.has(c.name.toLowerCase())
-                    );
-                    const hasAnyCourses = dbCourses.length > 0 || worldwideExtra.length > 0;
-                    if (!hasAnyCourses) return null;
-                    return (
-                      <div>
-                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Courses</h3>
-                        <div className="space-y-2">
-                          {dbCourses.map(course => (
-                            <div key={course.name} data-testid={`card-course-${course.name}`}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]"
-                            >
-                              <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                                <MapPin className="w-4 h-4 text-primary" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-white font-semibold text-sm truncate">{course.name}</p>
-                                <p className="text-white/40 text-xs">{course.postsCount} shots on PinView</p>
-                              </div>
+                  {/* Only show DB courses that have actual shots on PinView */}
+                  {(searchResults?.courses?.length ?? 0) > 0 && (
+                    <div>
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Courses on PinView</h3>
+                      <div className="space-y-2">
+                        {searchResults!.courses.map(course => (
+                          <div key={course.name} data-testid={`card-course-${course.name}`}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                              <MapPin className="w-4 h-4 text-primary" />
                             </div>
-                          ))}
-                          {worldwideExtra.map(course => (
-                            <button
-                              key={course.name}
-                              className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-colors text-left"
-                              onClick={() => setQuery(course.name)}
-                            >
-                              <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.07] flex items-center justify-center shrink-0">
-                                <MapPin className="w-4 h-4 text-white/30" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-white/70 font-semibold text-sm truncate">{course.name}</p>
-                                <p className="text-white/30 text-xs truncate">{course.location}</p>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-white font-semibold text-sm truncate">{course.name}</p>
+                              <p className="text-white/40 text-xs">{course.postsCount} {course.postsCount === 1 ? "shot" : "shots"} on PinView</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    );
-                  })()}
+                    </div>
+                  )}
 
                   {(searchResults?.users?.length ?? 0) === 0 &&
-                   (searchResults?.courses?.length ?? 0) === 0 &&
-                   courseSuggestions.length === 0 && (
+                   (searchResults?.courses?.length ?? 0) === 0 && (
                     <div className="text-center py-16 text-white/30">
                       <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
                       <p className="font-semibold">No results for "{query}"</p>
-                      <p className="text-sm mt-1 text-white/20">Try a different name or course</p>
+                      <p className="text-sm mt-1 text-white/20">Try a golfer name, or pick a course from the suggestions above</p>
                     </div>
                   )}
                 </>
