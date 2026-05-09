@@ -133,10 +133,22 @@ export default function Profile() {
     e.stopPropagation();
     if (!window.confirm("Delete this shot? This cannot be undone.")) return;
     setDeletingPostId(postId);
+
+    // Remove instantly from the local cache so the grid updates without waiting for a refetch
+    queryClient.setQueryData(
+      getGetUserPostsQueryKey(userId, { limit: 12 }),
+      (old: { posts: Post[]; nextCursor: string | null } | undefined) =>
+        old ? { ...old, posts: old.posts.filter(p => p.id !== postId) } : old,
+    );
+
     deletePost.mutate({ postId }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetUserPostsQueryKey(userId, { limit: 12 }) });
+        // Refresh the stats count (shots count decrements)
         queryClient.invalidateQueries({ queryKey: getGetUserQueryKey(userId) });
+      },
+      onError: () => {
+        // Server rejected — restore the list from server truth
+        queryClient.invalidateQueries({ queryKey: getGetUserPostsQueryKey(userId, { limit: 12 }) });
       },
       onSettled: () => setDeletingPostId(null),
     });

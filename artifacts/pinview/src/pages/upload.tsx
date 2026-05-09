@@ -20,20 +20,25 @@ function extractVideoThumbnail(videoFile: File): Promise<Blob | null> {
     video.preload = "metadata";
     video.muted = true;
     video.playsInline = true;
+    video.crossOrigin = "anonymous";
 
     const url = URL.createObjectURL(videoFile);
     video.src = url;
 
-    video.onloadeddata = () => {
-      video.currentTime = 0.5;
+    let settled = false;
+    const finish = (blob: Blob | null) => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(blob);
     };
 
-    video.onseeked = () => {
+    const capture = () => {
       const canvas = document.createElement("canvas");
       canvas.width = 720;
       canvas.height = 1280;
       const ctx = canvas.getContext("2d");
-      if (!ctx) { URL.revokeObjectURL(url); resolve(null); return; }
+      if (!ctx) { finish(null); return; }
 
       const vw = video.videoWidth || 720;
       const vh = video.videoHeight || 1280;
@@ -48,13 +53,25 @@ function extractVideoThumbnail(videoFile: File): Promise<Blob | null> {
         sy = (vh - sh) / 2;
       }
       ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-      URL.revokeObjectURL(url);
-      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.85);
+      canvas.toBlob((blob) => finish(blob), "image/jpeg", 0.85);
     };
 
-    video.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-    setTimeout(() => { URL.revokeObjectURL(url); resolve(null); }, 10000);
+    // loadedmetadata fires as soon as dimensions are known — seek to first frame
+    video.onloadedmetadata = () => {
+      // Seek to the very first frame (0 may not trigger onseeked on all browsers, 0.001 is reliable)
+      video.currentTime = 0.001;
+    };
+
+    video.onseeked = () => capture();
+
+    // Fallback: if onseeked never fires but canplay does, capture whatever frame is visible
+    video.oncanplay = () => {
+      if (!settled && video.readyState >= 2) capture();
+    };
+
+    video.onerror = () => finish(null);
+    // Hard timeout safety net
+    setTimeout(() => finish(null), 10000);
   });
 }
 
