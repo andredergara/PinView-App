@@ -1,6 +1,6 @@
 import express, { type Express } from "express";
 import cors from "cors";
-import pinoHttp from "pino-http";
+const pinoHttp = require("pino-http");
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import router from "./routes";
@@ -15,7 +15,7 @@ app.set("trust proxy", 1);
 const PgStore = connectPgSimple(session);
 
 app.use(
-  pinoHttp.default({
+  pinoHttp({
     logger,
     serializers: {
       req(req: any) {
